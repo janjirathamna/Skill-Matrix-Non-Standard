@@ -955,6 +955,8 @@ initCloud();
 .msm .rt th:nth-child(1){width:34%}.msm .rt th:nth-child(2){width:24%}
 .msm .rt .rf{font-weight:700;color:var(--ink);font-size:.69rem}
 .msm .rt .mn{white-space:nowrap}
+.msm .rt.v4 th:nth-child(1){width:27%}.msm .rt.v4 th:nth-child(2){width:15%}.msm .rt.v4 th:nth-child(3){width:17%}
+.msm .rt .rv{font-weight:700;white-space:nowrap}
 .msm .rt td b{color:var(--ink)}
 .msm .rt .since{display:block;color:var(--mute);font-size:.64rem;white-space:nowrap}
 .msm .rp{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;min-width:0}
@@ -984,17 +986,23 @@ initCloud();
   function E(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
   function N(s){return String(s||'').replace(/\s+/g,' ').trim().toLowerCase()}
   function dmy(iso){var m=String(iso||'').match(/^(\d{4})-(\d\d)-(\d\d)/);return m?m[3]+'/'+m[2]+'/'+m[1]:'–'}
-  function lab(m){return m.machineNo?'#'+m.machineNo:m.machine}
+  function lab(m){var n=String(m.machineNo||'').replace(/#/g,'').trim();return n?'#'+n:m.machine}
+  function ver(m){var x=String(m.machine||'').match(/\((\d+(?:\.\d+)?)\)/);return x?x[1]:''}      // ISO-ENG-(2.5) -> 2.5
+  function chgLab(m,many){var p=[];if(many&&m.factory)p.push(m.factory);if(ver(m))p.push(ver(m));p.push(lab(m));return p.join(' · ')}
   var FORD=['Terahop 5000','Ayutthaya','Pinewave'];
   function fo(f){var i=FORD.indexOf(f);return i<0?99:i}
   function mnum(m){var n=parseInt(m.machineNo,10);return isNaN(n)?1e9:n}
-  function runTable(ms){                           // Factory | Machine | Module that runs now
-    var rows=ms.slice().sort(function(a,b){return fo(a.factory)-fo(b.factory)||String(a.factory).localeCompare(String(b.factory))||mnum(a)-mnum(b)||String(a.machine).localeCompare(String(b.machine))});
-    var span={};rows.forEach(function(m){span[m.factory]=(span[m.factory]||0)+1});
-    var seen={},h='<table class="rt"><thead><tr><th>Factory</th><th>Machine</th><th>Module</th></tr></thead><tbody>';
+  function runTable(ms){                           // โรงงาน | version | เครื่องที่ | โมดูลที่ผลิต  (factory and version cells are merged)
+    var rows=ms.slice().sort(function(a,b){return fo(a.factory)-fo(b.factory)||String(a.factory).localeCompare(String(b.factory))||(parseFloat(ver(a))||0)-(parseFloat(ver(b))||0)||mnum(a)-mnum(b)||String(a.machine).localeCompare(String(b.machine))});
+    var hasV=rows.some(function(m){return ver(m)});   // cards whose machines have no version in their name keep 3 columns
+    var fs={},vs={};
+    rows.forEach(function(m){fs[m.factory]=(fs[m.factory]||0)+1;var k=m.factory+'|'+ver(m);vs[k]=(vs[k]||0)+1});
+    var fseen={},vseen={},h='<table class="rt'+(hasV?' v4':'')+'"><thead><tr><th>โรงงาน</th>'+(hasV?'<th>version</th>':'')+'<th>เครื่องที่</th><th>โมดูลที่ผลิต</th></tr></thead><tbody>';
     rows.forEach(function(m){
+      var k=m.factory+'|'+ver(m);
       h+='<tr>';
-      if(!seen[m.factory]){seen[m.factory]=1;h+='<td class="rf" rowspan="'+span[m.factory]+'">'+E(m.factory||'–')+'</td>'}
+      if(!fseen[m.factory]){fseen[m.factory]=1;h+='<td class="rf" rowspan="'+fs[m.factory]+'">'+E(m.factory||'–')+'</td>'}
+      if(hasV&&!vseen[k]){vseen[k]=1;h+='<td class="rv" rowspan="'+vs[k]+'">'+E(ver(m)||'–')+'</td>'}
       h+='<td class="mn">'+E(lab(m))+'</td><td>'+(m.current?'<b>'+E(m.current.product)+'</b><span class="since">since '+dmy(m.current.since)+'</span>':'<span class="na">–</span>')+'</td></tr>';
     });
     return h+'</tbody></table>';
@@ -1017,7 +1025,7 @@ initCloud();
     ms.forEach(function(m){m.periods.forEach(function(p,i){if(i>0)ch.push({at:p.from,m:m,from:m.periods[i-1].product,to:p.product})})});
     ch.sort(function(a,b){return a.at<b.at?1:a.at>b.at?-1:0});
     h+='<details><summary>Module changes ('+ch.length+')</summary>'+(ch.length?'<ul class="chg">'+ch.slice(0,15).map(function(c){
-      return '<li><span class="d">'+dmy(c.at)+'</span><span class="m">'+(many&&c.m.factory?E(c.m.factory)+' ':'')+E(lab(c.m))+'</span><span class="f">'+E(c.from)+' → <b>'+E(c.to)+'</b></span></li>';
+      return '<li><span class="d">'+dmy(c.at)+'</span><span class="m">'+E(chgLab(c.m,many))+'</span><span class="f">'+E(c.from)+' → <b>'+E(c.to)+'</b></span></li>';
     }).join('')+(ch.length>15?'<li class="na">… +'+(ch.length-15)+' more</li>':'')+'</ul>':'<div class="na" style="padding:0 9px 8px">No change logged</div>')+'</details>';
     return h;
   }
