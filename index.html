@@ -937,14 +937,26 @@ initCloud();
 </script>
  <!-- ===== MODULE HISTORY on "Machine Summary" cards: paste this whole block AFTER the last </script> and BEFORE </body> ===== -->
 <style>
-.msm{margin-top:auto;padding-top:10px;border-top:1px solid var(--line);font-size:.78rem;line-height:1.45;text-align:left;display:grid;gap:8px;min-width:0}
+.msm{margin-top:2px;padding-top:10px;border-top:1px solid var(--line);font-size:.78rem;line-height:1.45;text-align:left;display:grid;gap:8px;min-width:0}
 .msm .na{color:var(--mute)}
 .msm .mh{display:flex;align-items:center;gap:6px;font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
 .msm .mh i{width:8px;height:8px;border-radius:50%;background:var(--t0);display:inline-block}
 .msm .run{background:rgba(11,154,74,.08);border:1px solid rgba(11,154,74,.35);border-radius:8px;padding:7px 9px;display:grid;gap:5px;min-width:0}
 .msm .run .mh{color:var(--c0)}
-.msm .run .rl2{display:grid;gap:6px;max-height:120px;overflow:auto;padding-right:2px}
-.msm .run>.rp .since{flex-basis:100%}
+.msm .rt{width:100%;min-width:0;max-width:100%;border-collapse:collapse;border-spacing:0;table-layout:fixed;font-size:.72rem;background:var(--panel)}
+.msm .rt tbody tr:nth-child(even) td{background:var(--panel)}
+.msm .run:has(.rt){padding:0;gap:0;overflow:hidden}
+.msm .run:has(.rt) .mh{padding:6px 9px}
+.msm .rt th,.msm .rt td{border:1px solid var(--line);padding:3px 4px;text-align:left;vertical-align:top;overflow-wrap:break-word;word-break:normal}
+.msm .rt th:first-child,.msm .rt td:first-child{border-left:0}
+.msm .rt th:last-child,.msm .rt td:last-child{border-right:0}
+.msm .rt tbody tr:last-child td{border-bottom:0}
+.msm .rt th{background:var(--row);color:var(--mute);font-weight:700;font-size:.62rem;white-space:nowrap}
+.msm .rt th:nth-child(1){width:34%}.msm .rt th:nth-child(2){width:24%}
+.msm .rt .rf{font-weight:700;color:var(--ink);font-size:.69rem}
+.msm .rt .mn{white-space:nowrap}
+.msm .rt td b{color:var(--ink)}
+.msm .rt .since{display:block;color:var(--mute);font-size:.64rem;white-space:nowrap}
 .msm .rp{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;min-width:0}
 .msm .rp b{font-size:.84rem;color:var(--ink);overflow-wrap:anywhere}
 .msm .rp .where{color:var(--mute);overflow-wrap:anywhere}
@@ -973,10 +985,19 @@ initCloud();
   function N(s){return String(s||'').replace(/\s+/g,' ').trim().toLowerCase()}
   function dmy(iso){var m=String(iso||'').match(/^(\d{4})-(\d\d)-(\d\d)/);return m?m[3]+'/'+m[2]+'/'+m[1]:'–'}
   function lab(m){return m.machineNo?'#'+m.machineNo:m.machine}
-  function where(ms,many){                       // "Terahop 5000: #1, #2 · Ayutthaya: #4"
-    var by={},order=[];
-    ms.forEach(function(m){var f=m.factory||'';if(!by[f]){by[f]=[];order.push(f)}by[f].push(lab(m))});
-    return order.map(function(f){return (many&&f?E(f)+': ':'')+E(by[f].join(', '))}).join(' · ');
+  var FORD=['Terahop 5000','Ayutthaya','Pinewave'];
+  function fo(f){var i=FORD.indexOf(f);return i<0?99:i}
+  function mnum(m){var n=parseInt(m.machineNo,10);return isNaN(n)?1e9:n}
+  function runTable(ms){                           // Factory | Machine | Module that runs now
+    var rows=ms.slice().sort(function(a,b){return fo(a.factory)-fo(b.factory)||String(a.factory).localeCompare(String(b.factory))||mnum(a)-mnum(b)||String(a.machine).localeCompare(String(b.machine))});
+    var span={};rows.forEach(function(m){span[m.factory]=(span[m.factory]||0)+1});
+    var seen={},h='<table class="rt"><thead><tr><th>Factory</th><th>Machine</th><th>Module</th></tr></thead><tbody>';
+    rows.forEach(function(m){
+      h+='<tr>';
+      if(!seen[m.factory]){seen[m.factory]=1;h+='<td class="rf" rowspan="'+span[m.factory]+'">'+E(m.factory||'–')+'</td>'}
+      h+='<td class="mn">'+E(lab(m))+'</td><td>'+(m.current?'<b>'+E(m.current.product)+'</b><span class="since">since '+dmy(m.current.since)+'</span>':'<span class="na">–</span>')+'</td></tr>';
+    });
+    return h+'</tbody></table>';
   }
   function find(name){
     if(!DATA||!DATA.items)return null;
@@ -989,18 +1010,9 @@ initCloud();
     var it=find(name);
     if(!it||!it.machines||!it.machines.length)return '<span class="na">Module: no data for this machine</span>';
     var ms=it.machines,facs={};ms.forEach(function(m){facs[m.factory]=1});
-    var many=Object.keys(facs).length>1,cur={},h='';
-    ms.forEach(function(m){if(m.current){(cur[m.current.product]=cur[m.current.product]||[]).push(m)}});
-    var prods=Object.keys(cur);
-    if(!prods.length)h+='<span class="na">Module: not known yet</span>';
-    else if(prods.length===1&&cur[prods[0]].length===ms.length){
-      var s0=cur[prods[0]].map(function(m){return m.current.since}).sort()[0];
-      h+='<div class="run"><div class="mh"><i></i>Running now</div><div class="rp"><b>'+E(prods[0])+'</b><span class="since" title="First date this module appears in the logs">since '+dmy(s0)+'</span></div></div>';
-    }else{
-      h+='<div class="run"><div class="mh"><i></i>Running now · '+prods.length+' modules</div><div class="rl2">'+prods.map(function(p){
-        return '<div class="rp"><b>'+E(p)+'</b><span class="where">'+where(cur[p],many)+'</span></div>';
-      }).join('')+'</div></div>';
-    }
+    var many=Object.keys(facs).length>1,h='';
+    if(!ms.some(function(m){return m.current}))h+='<span class="na">Module: not known yet</span>';
+    else h+='<div class="run"><div class="mh"><i></i>Running now</div>'+runTable(ms)+'</div>';
     var ch=[];
     ms.forEach(function(m){m.periods.forEach(function(p,i){if(i>0)ch.push({at:p.from,m:m,from:m.periods[i-1].product,to:p.product})})});
     ch.sort(function(a,b){return a.at<b.at?1:a.at>b.at?-1:0});
