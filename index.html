@@ -955,7 +955,9 @@ initCloud();
 .msm .rt th:nth-child(1){width:34%}.msm .rt th:nth-child(2){width:24%}
 .msm .rt .rf{font-weight:700;color:var(--ink);font-size:.69rem}
 .msm .rt .mn{white-space:nowrap}
-.msm .rt.v4 th:nth-child(1){width:27%}.msm .rt.v4 th:nth-child(2){width:15%}.msm .rt.v4 th:nth-child(3){width:17%}
+.msm .rt.v4 th:nth-child(1){width:26%}.msm .rt.v4 th:nth-child(2){width:13%}.msm .rt.v4 th:nth-child(3){width:12%}
+.msm .rt:not(.v4) th:nth-child(1){width:34%}.msm .rt:not(.v4) th:nth-child(2){width:16%}
+.msm .rt th{overflow:hidden;text-overflow:clip}
 .msm .rt .rv{font-weight:700;white-space:nowrap}
 .msm .rt td b{color:var(--ink)}
 .msm .rt .since{display:block;color:var(--mute);font-size:.64rem;white-space:nowrap}
@@ -982,7 +984,7 @@ initCloud();
 (function(){
   var MOD_URL='https://script.google.com/macros/s/AKfycbxNht563H7COeUnwfF4NUImMsv3bFGoIpiHsE4h1tTrPFemxnskTOBsCw02zQ-ts7G8/exec?type=modules';
   var LS='msm-modules-cache', DATA=null;
-  var TX={en:{fac:'Factory',ver:'Version',mac:'Machine',mod:'Module',run:'Running now',since:'since',chg:'Module changes',none:'No change logged',more:'more',load:'Module: loading…',nodata:'Module: no data for this machine',unk:'Module: not known yet'},
+  var TX={en:{fac:'Factory',ver:'Ver.',mac:'No.',mod:'Module',run:'Running now',since:'since',chg:'Module changes',none:'No change logged',more:'more',load:'Module: loading…',nodata:'Module: no data for this machine',unk:'Module: not known yet'},
           zh:{fac:'工厂',ver:'版本',mac:'机台',mod:'模块',run:'当前运行',since:'自',chg:'模块更换',none:'暂无更换记录',more:'更多',load:'模块：加载中…',nodata:'模块：此机台暂无数据',unk:'模块：暂未知'}};
   function LG(){return 'en'}   // English only. To follow the Problem Report web's EN / 中文 choice later, use: try{return localStorage.getItem('lang')==='zh'?'zh':'en'}catch(e){return 'en'}
   function t(k){return TX[LG()][k]}
