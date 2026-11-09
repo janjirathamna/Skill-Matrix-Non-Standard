@@ -932,5 +932,72 @@ renderNote();
 render();
 initCloud();
 </script>
+ <!-- ===== MODULE HISTORY on "Machine Summary" cards: paste this whole block AFTER the last </script> and BEFORE </body> ===== -->
+<style>
+.msm{margin-top:8px;padding-top:8px;border-top:1px solid rgba(128,128,128,.35);font-size:12px;line-height:1.5;text-align:left}
+.msm .na{opacity:.6}
+.msm details{margin-top:4px}
+.msm summary{cursor:pointer;font-weight:600}
+.msm ul{margin:4px 0 0;padding-left:16px}
+</style>
+<script>
+(function(){
+  var MOD_URL='https://script.google.com/macros/s/AKfycbxNht563H7COeUnwfF4NUImMsv3bFGoIpiHsE4h1tTrPFemxnskTOBsCw02zQ-ts7G8/exec?type=modules';
+  var LS='msm-modules-cache', DATA=null;
+  try{DATA=JSON.parse(localStorage.getItem(LS))}catch(e){}
+  function E(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function N(s){return String(s||'').replace(/\s+/g,' ').trim().toLowerCase()}
+  function dmy(iso){var m=String(iso||'').match(/^(\d{4})-(\d\d)-(\d\d)/);return m?m[3]+'/'+m[2]+'/'+m[1]:'–'}
+  function lab(m,many){return (many&&m.factory?m.factory+' ':'')+(m.machineNo?'#'+m.machineNo:m.machine)}
+  function find(name){
+    if(!DATA||!DATA.items)return null;
+    var k=N(name),r=null;
+    DATA.items.forEach(function(it){if(!r&&N(it.webName)===k)r=it});
+    return r;
+  }
+  function box(name){
+    if(!DATA)return '<span class="na">Module: loading…</span>';
+    var it=find(name);
+    if(!it||!it.machines||!it.machines.length)return '<span class="na">Module: no data for this machine</span>';
+    var ms=it.machines,facs={};ms.forEach(function(m){facs[m.factory]=1});
+    var many=Object.keys(facs).length>1,cur={},h='';
+    ms.forEach(function(m){if(m.current){(cur[m.current.product]=cur[m.current.product]||[]).push(m)}});
+    var prods=Object.keys(cur);
+    if(!prods.length)h+='<span class="na">Module: not known yet</span>';
+    else if(prods.length===1&&cur[prods[0]].length===ms.length){
+      var s0=cur[prods[0]].map(function(m){return m.current.since}).sort()[0];
+      h+='Running now: <b>'+E(prods[0])+'</b> <span class="na" title="First date this module appears in the logs">(since '+dmy(s0)+')</span>';
+    }else{
+      h+='Running now:<ul>'+prods.map(function(p){
+        return '<li><b>'+E(p)+'</b> — '+cur[p].map(function(m){return E(lab(m,many))}).join(', ')+'</li>';
+      }).join('')+'</ul>';
+    }
+    var ch=[];
+    ms.forEach(function(m){m.periods.forEach(function(p,i){if(i>0)ch.push({at:p.from,m:m,from:m.periods[i-1].product,to:p.product})})});
+    ch.sort(function(a,b){return a.at<b.at?1:a.at>b.at?-1:0});
+    h+='<details><summary>Module changes ('+ch.length+')</summary>'+(ch.length?'<ul>'+ch.slice(0,15).map(function(c){
+      return '<li>'+dmy(c.at)+' — '+E(lab(c.m,many))+': '+E(c.from)+' → <b>'+E(c.to)+'</b></li>';
+    }).join('')+(ch.length>15?'<li class="na">… +'+(ch.length-15)+' more</li>':'')+'</ul>':'<div class="na">No change logged</div>')+'</details>';
+    return h;
+  }
+  function inject(){
+    var cards=document.querySelectorAll('#sg article.mc');
+    for(var i=0;i<cards.length;i++){
+      var a=cards[i],t=a.querySelector('h3');if(!t)continue;
+      var old=a.querySelector('.msm');if(old)old.remove();
+      var d=document.createElement('div');d.className='msm';d.innerHTML=box(t.textContent);a.appendChild(d);
+    }
+  }
+  var orig=window.renderMS;
+  if(typeof orig==='function'){window.renderMS=function(){var r=orig.apply(this,arguments);try{inject()}catch(e){}return r}}
+  try{inject()}catch(e){}
+  try{
+    fetch(MOD_URL).then(function(r){return r.json()}).then(function(j){
+      if(j&&j.ok){DATA=j;try{localStorage.setItem(LS,JSON.stringify(j))}catch(e){}inject()}
+    }).catch(function(){});
+  }catch(e){}
+})();
+</script>
+<!-- ===== end of module history block ===== -->
 </body>
 </html>
