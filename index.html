@@ -932,53 +932,106 @@ renderNote();
 render();
 initCloud();
 </script>
- <!-- ===== MODULE HISTORY on "Machine Summary" cards: paste this whole block AFTER the last </script> and BEFORE </body> ===== -->
+ <!-- ===== MODULE HISTORY on "Machine Summary" cards (v2: one block per version, factory named, friendly machine numbers) ===== -->
 <style>
 .msm{margin-top:8px;padding-top:8px;border-top:1px solid rgba(128,128,128,.35);font-size:12px;line-height:1.5;text-align:left}
 .msm .na{opacity:.6}
-.msm details{margin-top:4px}
+.msm details{margin-top:6px}
 .msm summary{cursor:pointer;font-weight:600}
 .msm ul{margin:4px 0 0;padding-left:16px}
+.msm .rn{border:2px solid #16a34a;background:rgba(22,163,74,.08);border-radius:8px;padding:6px 10px}
+.msm .rt{display:inline-block;font-weight:700;color:#16a34a;letter-spacing:.2px}
+.msm .vh{font-weight:700;margin-top:6px}
+.msm .rn .vh:first-of-type{margin-top:2px}
+.msm .fc{font-weight:600}
 </style>
 <script>
 (function(){
   var MOD_URL='https://script.google.com/macros/s/AKfycbxNht563H7COeUnwfF4NUImMsv3bFGoIpiHsE4h1tTrPFemxnskTOBsCw02zQ-ts7G8/exec?type=modules';
   var LS='msm-modules-cache', DATA=null;
+  var ORDER=['Ayutthaya','Terahop 5000','Pinewave'];
   try{DATA=JSON.parse(localStorage.getItem(LS))}catch(e){}
   function E(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
   function N(s){return String(s||'').replace(/\s+/g,' ').trim().toLowerCase()}
   function dmy(iso){var m=String(iso||'').match(/^(\d{4})-(\d\d)-(\d\d)/);return m?m[3]+'/'+m[2]+'/'+m[1]:'–'}
-  function lab(m,many){return (many&&m.factory?m.factory+' ':'')+(m.machineNo?'#'+m.machineNo:m.machine)}
   function find(name){
     if(!DATA||!DATA.items)return null;
     var k=N(name),r=null;
     DATA.items.forEach(function(it){if(!r&&N(it.webName)===k)r=it});
     return r;
   }
+  /* ---- machine name, version, number ---- */
+  function rawName(m){return m.machineRaw||m.machine||m.rawMachineName||m.rawName||m.name||''}
+  function ver(m){                                    // 'ISO-ENG-(2.5)' -> '2.5'
+    var r=String(rawName(m)),x=r.match(/\(\s*(\d+(?:\.\d+)?)\s*\)/)||r.match(/\b(\d+\.\d+)\b/);
+    return x?x[1]:'';
+  }
+  function mnum(m){var d=String(m.machineNo==null?'':m.machineNo).match(/\d+/);return d?d[0]:String(m.machineNo||'')}   // '1#' -> '1'
+  function cmpNum(a,b){return String(a).localeCompare(String(b),undefined,{numeric:true})}
+  function facOrder(a,b){var x=ORDER.indexOf(a),y=ORDER.indexOf(b);x=x<0?99:x;y=y<0?99:y;return x-y||String(a).localeCompare(String(b))}
+  function who(list){                                 // 'Ayutthaya: machine 1 · Terahop 5000: machines 1, 2'
+    var by={},order=[];
+    list.forEach(function(m){var f=m.factory||'';if(!by[f]){by[f]=[];order.push(f)}by[f].push(m)});
+    order.sort(facOrder);
+    return order.map(function(f){
+      var nums=by[f].map(function(m){return mnum(m)||rawName(m)}).sort(cmpNum);
+      nums=nums.filter(function(v,i){return nums.indexOf(v)===i});
+      var digits=nums.every(function(v){return /^\d+$/.test(v)});
+      return (f?'<span class="fc">'+E(f)+'</span>: ':'')+(digits?(nums.length>1?'machines ':'machine ')+nums.join(', '):E(nums.join(', ')));
+    }).join(' · ');
+  }
+  function one(m){var n=mnum(m);return (m.factory?m.factory+' ':'')+(/^\d+$/.test(n)?'machine '+n:(n||rawName(m)))}   // 'Terahop 5000 machine 2'
+  function byVer(ms){                                 // machines grouped by version (2.0 / 2.5 / 3.0), numeric order
+    var g={},keys=[];
+    ms.forEach(function(m){var v=ver(m);if(!g[v]){g[v]=[];keys.push(v)}g[v].push(m)});
+    keys.sort(function(a,b){return a===''?1:b===''?-1:parseFloat(a)-parseFloat(b)});
+    return keys.map(function(v){return{v:v,ms:g[v]}});
+  }
+  function curByProduct(ms){var cur={};ms.forEach(function(m){if(m.current&&m.current.product)(cur[m.current.product]=cur[m.current.product]||[]).push(m)});return cur}
+  function changes(ms){
+    var ch=[];
+    ms.forEach(function(m){(m.periods||[]).forEach(function(p,i){if(i>0)ch.push({at:p.from,m:m,from:m.periods[i-1].product,to:p.product})})});
+    ch.sort(function(a,b){return a.at<b.at?1:a.at>b.at?-1:0});
+    return ch;
+  }
+  function li(c){return '<li>'+dmy(c.at)+' — '+E(one(c.m))+': '+E(c.from)+' → <b>'+E(c.to)+'</b></li>'}
+  function vlabel(v){return v?'Version '+E(v):'Other machines'}
+
   function box(name){
     if(!DATA)return '<span class="na">Module: loading…</span>';
     var it=find(name);
     if(!it||!it.machines||!it.machines.length)return '<span class="na">Module: no data for this machine</span>';
-    var ms=it.machines,facs={};ms.forEach(function(m){facs[m.factory]=1});
-    var many=Object.keys(facs).length>1,cur={},h='';
-    ms.forEach(function(m){if(m.current){(cur[m.current.product]=cur[m.current.product]||[]).push(m)}});
-    var prods=Object.keys(cur);
+    var ms=it.machines,groups=byVer(ms),showVer=groups.length>1,h='';
+    var all=curByProduct(ms),prods=Object.keys(all);
     if(!prods.length)h+='<span class="na">Module: not known yet</span>';
-    else if(prods.length===1&&cur[prods[0]].length===ms.length){
-      var s0=cur[prods[0]].map(function(m){return m.current.since}).sort()[0];
-      h+='Running now: <b>'+E(prods[0])+'</b> <span class="na" title="First date this module appears in the logs">(since '+dmy(s0)+')</span>';
+    else if(showVer){                                 // one block per version, with the factory of every machine
+      h+='<div class="rn"><span class="rt">Running now</span>';
+      groups.forEach(function(g){
+        var cur=curByProduct(g.ms),ps=Object.keys(cur);
+        h+='<div class="vh">'+vlabel(g.v)+'</div>';
+        h+=ps.length?'<ul>'+ps.map(function(p){return '<li><b>'+E(p)+'</b> — '+who(cur[p])+'</li>'}).join('')+'</ul>':'<div class="na">not known yet</div>';
+      });
+      h+='</div>';
+    }else if(prods.length===1&&all[prods[0]].length===ms.length){
+      var s0=all[prods[0]].map(function(m){return m.current.since}).sort()[0];
+      h+='<div class="rn"><span class="rt">Running now</span> <b>'+E(prods[0])+'</b> <span class="na" title="First date this module appears in the logs">(since '+dmy(s0)+')</span></div>';
     }else{
-      h+='Running now:<ul>'+prods.map(function(p){
-        return '<li><b>'+E(p)+'</b> — '+cur[p].map(function(m){return E(lab(m,many))}).join(', ')+'</li>';
-      }).join('')+'</ul>';
+      h+='<div class="rn"><span class="rt">Running now</span><ul>'+prods.map(function(p){return '<li><b>'+E(p)+'</b> — '+who(all[p])+'</li>'}).join('')+'</ul></div>';
     }
-    var ch=[];
-    ms.forEach(function(m){m.periods.forEach(function(p,i){if(i>0)ch.push({at:p.from,m:m,from:m.periods[i-1].product,to:p.product})})});
-    ch.sort(function(a,b){return a.at<b.at?1:a.at>b.at?-1:0});
-    h+='<details><summary>Module changes ('+ch.length+')</summary>'+(ch.length?'<ul>'+ch.slice(0,15).map(function(c){
-      return '<li>'+dmy(c.at)+' — '+E(lab(c.m,many))+': '+E(c.from)+' → <b>'+E(c.to)+'</b></li>';
-    }).join('')+(ch.length>15?'<li class="na">… +'+(ch.length-15)+' more</li>':'')+'</ul>':'<div class="na">No change logged</div>')+'</details>';
-    return h;
+    var total=changes(ms).length;
+    h+='<details><summary>Module changes ('+total+')</summary>';
+    if(!total)h+='<div class="na">No change logged</div>';
+    else if(showVer){
+      groups.forEach(function(g){
+        var ch=changes(g.ms);
+        h+='<div class="vh">'+vlabel(g.v)+' <span class="na">('+ch.length+')</span></div>';
+        h+=ch.length?'<ul>'+ch.slice(0,10).map(li).join('')+(ch.length>10?'<li class="na">… +'+(ch.length-10)+' more</li>':'')+'</ul>':'<div class="na">No change logged</div>';
+      });
+    }else{
+      var ch=changes(ms);
+      h+='<ul>'+ch.slice(0,15).map(li).join('')+(ch.length>15?'<li class="na">… +'+(ch.length-15)+' more</li>':'')+'</ul>';
+    }
+    return h+'</details>';
   }
   function inject(){
     var cards=document.querySelectorAll('#sg article.mc');
@@ -990,6 +1043,7 @@ initCloud();
   }
   var orig=window.renderMS;
   if(typeof orig==='function'){window.renderMS=function(){var r=orig.apply(this,arguments);try{inject()}catch(e){}return r}}
+  window.MSM_DEBUG=function(){return DATA};          // browser console: MSM_DEBUG() shows the data this block received
   try{inject()}catch(e){}
   try{
     fetch(MOD_URL).then(function(r){return r.json()}).then(function(j){
