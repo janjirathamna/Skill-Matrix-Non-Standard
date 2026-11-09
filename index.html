@@ -98,7 +98,8 @@ thead th.eq img{display:block;margin:0 auto 4px;max-width:56px;max-height:48px;o
 .rk{display:flex;flex-wrap:wrap;gap:6px 10px;margin:0 0 12px;font-size:.78rem;color:var(--mute)}
 .kc{display:inline-flex;align-items:center;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:2px 8px}
 .kc img{height:18px;width:auto}.kc b{color:var(--ink)}
-.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:12px}
+.rg>*,.tcs>*{min-width:0}
 .rc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;display:grid;gap:4px;justify-items:center}
 .rc:hover{border-color:var(--navy2)}
 .rc h3{margin:0;font-size:.98rem}
@@ -117,8 +118,9 @@ thead th.eq img{display:block;margin:0 auto 4px;max-width:56px;max-height:48px;o
 .sv.w{color:var(--c1)}.sv.e{color:var(--c3)}
 tfoot td,tfoot th{background:var(--eqh);font-weight:800;border-top:2px solid var(--line)}
 tfoot .nm{background:var(--eqh);font-size:.8rem}
-.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
-.mc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px;text-align:center;align-content:start}
+.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:14px;align-items:stretch}
+.mc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;text-align:center;min-width:0;overflow:hidden;box-shadow:0 1px 3px rgba(16,42,82,.06)}
+.mc>*{min-width:0}
 .mc h3{margin:0;font-size:.95rem}
 .mi{width:100%;aspect-ratio:4/3;background:var(--eqh);border:1px dashed var(--line);border-radius:8px;display:grid;place-items:center;align-content:center;gap:2px;color:var(--mute);font-size:.8rem;padding:4px;overflow:hidden}
 .mi:disabled{cursor:default}
@@ -127,6 +129,7 @@ tfoot .nm{background:var(--eqh);font-size:.8rem}
 .mbar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
 .mbar i{display:block;height:100%}
 .chs{display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:center;font-size:.76rem;color:var(--mute)}
+.chp{white-space:nowrap}
 .chp{display:inline-flex;align-items:center;gap:4px}
 .mc small{color:var(--mute)}
 .lbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
@@ -167,7 +170,7 @@ thead th.eq img{display:block;width:76px;height:56px;max-width:none;max-height:n
 .im{min-height:0;padding:2px}
 .im img,.im .phb{margin:0 auto}
 .mi img{width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;border-radius:6px}
-.mc h3{min-height:2.5em;display:grid;align-items:center}
+.mc h3{min-height:2.5em;display:grid;align-items:center;overflow-wrap:anywhere}
 .kc img{width:26px;height:18px;object-fit:cover;border-radius:3px}
 .top{margin:8px 0 0;padding:8px 12px;border-radius:8px;background:var(--eqh)}
 .rl{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
@@ -932,106 +935,79 @@ renderNote();
 render();
 initCloud();
 </script>
- <!-- ===== MODULE HISTORY on "Machine Summary" cards (v2: one block per version, factory named, friendly machine numbers) ===== -->
+ <!-- ===== MODULE HISTORY on "Machine Summary" cards: paste this whole block AFTER the last </script> and BEFORE </body> ===== -->
 <style>
-.msm{margin-top:8px;padding-top:8px;border-top:1px solid rgba(128,128,128,.35);font-size:12px;line-height:1.5;text-align:left}
-.msm .na{opacity:.6}
-.msm details{margin-top:6px}
-.msm summary{cursor:pointer;font-weight:600}
-.msm ul{margin:4px 0 0;padding-left:16px}
-.msm .rn{border:2px solid #16a34a;background:rgba(22,163,74,.08);border-radius:8px;padding:6px 10px}
-.msm .rt{display:inline-block;font-weight:700;color:#16a34a;letter-spacing:.2px}
-.msm .vh{font-weight:700;margin-top:6px}
-.msm .rn .vh:first-of-type{margin-top:2px}
-.msm .fc{font-weight:600}
+.msm{margin-top:auto;padding-top:10px;border-top:1px solid var(--line);font-size:.78rem;line-height:1.45;text-align:left;display:grid;gap:8px;min-width:0}
+.msm .na{color:var(--mute)}
+.msm .mh{display:flex;align-items:center;gap:6px;font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.msm .mh i{width:8px;height:8px;border-radius:50%;background:var(--t0);display:inline-block}
+.msm .run{background:rgba(11,154,74,.08);border:1px solid rgba(11,154,74,.35);border-radius:8px;padding:7px 9px;display:grid;gap:5px;min-width:0}
+.msm .run .mh{color:var(--c0)}
+.msm .run .rl2{display:grid;gap:6px;max-height:120px;overflow:auto;padding-right:2px}
+.msm .run>.rp .since{flex-basis:100%}
+.msm .rp{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;min-width:0}
+.msm .rp b{font-size:.84rem;color:var(--ink);overflow-wrap:anywhere}
+.msm .rp .where{color:var(--mute);overflow-wrap:anywhere}
+.msm .rp .since{color:var(--mute);font-size:.72rem;white-space:nowrap}
+.msm details{border:1px solid var(--line);border-radius:8px;background:var(--row);min-width:0}
+.msm summary{cursor:pointer;font-weight:700;padding:6px 9px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--navy2)}
+.msm summary::-webkit-details-marker{display:none}
+.msm summary::after{content:"▸";transition:transform .15s;color:var(--mute)}
+.msm details[open] summary::after{transform:rotate(90deg)}
+:root[data-theme="dark"] .msm summary{color:#cfe0fa}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .msm summary{color:#cfe0fa}}
+.msm .chg{margin:0;padding:2px 9px 8px;list-style:none;display:grid;gap:6px;max-height:190px;overflow:auto}
+.msm .chg li{display:grid;gap:1px;padding-top:6px;border-top:1px dashed var(--line);min-width:0}
+.msm .chg li:first-child{border-top:0;padding-top:0}
+.msm .chg .d{color:var(--mute);font-size:.7rem}
+.msm .chg .m{font-weight:600;overflow-wrap:anywhere}
+.msm .chg .f{overflow-wrap:anywhere}
+.msm .chg .f b{color:var(--ink)}
 </style>
 <script>
 (function(){
   var MOD_URL='https://script.google.com/macros/s/AKfycbxNht563H7COeUnwfF4NUImMsv3bFGoIpiHsE4h1tTrPFemxnskTOBsCw02zQ-ts7G8/exec?type=modules';
   var LS='msm-modules-cache', DATA=null;
-  var ORDER=['Ayutthaya','Terahop 5000','Pinewave'];
   try{DATA=JSON.parse(localStorage.getItem(LS))}catch(e){}
   function E(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
   function N(s){return String(s||'').replace(/\s+/g,' ').trim().toLowerCase()}
   function dmy(iso){var m=String(iso||'').match(/^(\d{4})-(\d\d)-(\d\d)/);return m?m[3]+'/'+m[2]+'/'+m[1]:'–'}
+  function lab(m){return m.machineNo?'#'+m.machineNo:m.machine}
+  function where(ms,many){                       // "Terahop 5000: #1, #2 · Ayutthaya: #4"
+    var by={},order=[];
+    ms.forEach(function(m){var f=m.factory||'';if(!by[f]){by[f]=[];order.push(f)}by[f].push(lab(m))});
+    return order.map(function(f){return (many&&f?E(f)+': ':'')+E(by[f].join(', '))}).join(' · ');
+  }
   function find(name){
     if(!DATA||!DATA.items)return null;
     var k=N(name),r=null;
     DATA.items.forEach(function(it){if(!r&&N(it.webName)===k)r=it});
     return r;
   }
-  /* ---- machine name, version, number ---- */
-  function rawName(m){return m.machineRaw||m.machine||m.rawMachineName||m.rawName||m.name||''}
-  function ver(m){                                    // 'ISO-ENG-(2.5)' -> '2.5'
-    var r=String(rawName(m)),x=r.match(/\(\s*(\d+(?:\.\d+)?)\s*\)/)||r.match(/\b(\d+\.\d+)\b/);
-    return x?x[1]:'';
-  }
-  function mnum(m){var d=String(m.machineNo==null?'':m.machineNo).match(/\d+/);return d?d[0]:String(m.machineNo||'')}   // '1#' -> '1'
-  function cmpNum(a,b){return String(a).localeCompare(String(b),undefined,{numeric:true})}
-  function facOrder(a,b){var x=ORDER.indexOf(a),y=ORDER.indexOf(b);x=x<0?99:x;y=y<0?99:y;return x-y||String(a).localeCompare(String(b))}
-  function who(list){                                 // 'Ayutthaya: machine 1 · Terahop 5000: machines 1, 2'
-    var by={},order=[];
-    list.forEach(function(m){var f=m.factory||'';if(!by[f]){by[f]=[];order.push(f)}by[f].push(m)});
-    order.sort(facOrder);
-    return order.map(function(f){
-      var nums=by[f].map(function(m){return mnum(m)||rawName(m)}).sort(cmpNum);
-      nums=nums.filter(function(v,i){return nums.indexOf(v)===i});
-      var digits=nums.every(function(v){return /^\d+$/.test(v)});
-      return (f?'<span class="fc">'+E(f)+'</span>: ':'')+(digits?(nums.length>1?'machines ':'machine ')+nums.join(', '):E(nums.join(', ')));
-    }).join(' · ');
-  }
-  function one(m){var n=mnum(m);return (m.factory?m.factory+' ':'')+(/^\d+$/.test(n)?'machine '+n:(n||rawName(m)))}   // 'Terahop 5000 machine 2'
-  function byVer(ms){                                 // machines grouped by version (2.0 / 2.5 / 3.0), numeric order
-    var g={},keys=[];
-    ms.forEach(function(m){var v=ver(m);if(!g[v]){g[v]=[];keys.push(v)}g[v].push(m)});
-    keys.sort(function(a,b){return a===''?1:b===''?-1:parseFloat(a)-parseFloat(b)});
-    return keys.map(function(v){return{v:v,ms:g[v]}});
-  }
-  function curByProduct(ms){var cur={};ms.forEach(function(m){if(m.current&&m.current.product)(cur[m.current.product]=cur[m.current.product]||[]).push(m)});return cur}
-  function changes(ms){
-    var ch=[];
-    ms.forEach(function(m){(m.periods||[]).forEach(function(p,i){if(i>0)ch.push({at:p.from,m:m,from:m.periods[i-1].product,to:p.product})})});
-    ch.sort(function(a,b){return a.at<b.at?1:a.at>b.at?-1:0});
-    return ch;
-  }
-  function li(c){return '<li>'+dmy(c.at)+' — '+E(one(c.m))+': '+E(c.from)+' → <b>'+E(c.to)+'</b></li>'}
-  function vlabel(v){return v?'Version '+E(v):'Other machines'}
-
   function box(name){
     if(!DATA)return '<span class="na">Module: loading…</span>';
     var it=find(name);
     if(!it||!it.machines||!it.machines.length)return '<span class="na">Module: no data for this machine</span>';
-    var ms=it.machines,groups=byVer(ms),showVer=groups.length>1,h='';
-    var all=curByProduct(ms),prods=Object.keys(all);
+    var ms=it.machines,facs={};ms.forEach(function(m){facs[m.factory]=1});
+    var many=Object.keys(facs).length>1,cur={},h='';
+    ms.forEach(function(m){if(m.current){(cur[m.current.product]=cur[m.current.product]||[]).push(m)}});
+    var prods=Object.keys(cur);
     if(!prods.length)h+='<span class="na">Module: not known yet</span>';
-    else if(showVer){                                 // one block per version, with the factory of every machine
-      h+='<div class="rn"><span class="rt">Running now</span>';
-      groups.forEach(function(g){
-        var cur=curByProduct(g.ms),ps=Object.keys(cur);
-        h+='<div class="vh">'+vlabel(g.v)+'</div>';
-        h+=ps.length?'<ul>'+ps.map(function(p){return '<li><b>'+E(p)+'</b> — '+who(cur[p])+'</li>'}).join('')+'</ul>':'<div class="na">not known yet</div>';
-      });
-      h+='</div>';
-    }else if(prods.length===1&&all[prods[0]].length===ms.length){
-      var s0=all[prods[0]].map(function(m){return m.current.since}).sort()[0];
-      h+='<div class="rn"><span class="rt">Running now</span> <b>'+E(prods[0])+'</b> <span class="na" title="First date this module appears in the logs">(since '+dmy(s0)+')</span></div>';
+    else if(prods.length===1&&cur[prods[0]].length===ms.length){
+      var s0=cur[prods[0]].map(function(m){return m.current.since}).sort()[0];
+      h+='<div class="run"><div class="mh"><i></i>Running now</div><div class="rp"><b>'+E(prods[0])+'</b><span class="since" title="First date this module appears in the logs">since '+dmy(s0)+'</span></div></div>';
     }else{
-      h+='<div class="rn"><span class="rt">Running now</span><ul>'+prods.map(function(p){return '<li><b>'+E(p)+'</b> — '+who(all[p])+'</li>'}).join('')+'</ul></div>';
+      h+='<div class="run"><div class="mh"><i></i>Running now · '+prods.length+' modules</div><div class="rl2">'+prods.map(function(p){
+        return '<div class="rp"><b>'+E(p)+'</b><span class="where">'+where(cur[p],many)+'</span></div>';
+      }).join('')+'</div></div>';
     }
-    var total=changes(ms).length;
-    h+='<details><summary>Module changes ('+total+')</summary>';
-    if(!total)h+='<div class="na">No change logged</div>';
-    else if(showVer){
-      groups.forEach(function(g){
-        var ch=changes(g.ms);
-        h+='<div class="vh">'+vlabel(g.v)+' <span class="na">('+ch.length+')</span></div>';
-        h+=ch.length?'<ul>'+ch.slice(0,10).map(li).join('')+(ch.length>10?'<li class="na">… +'+(ch.length-10)+' more</li>':'')+'</ul>':'<div class="na">No change logged</div>';
-      });
-    }else{
-      var ch=changes(ms);
-      h+='<ul>'+ch.slice(0,15).map(li).join('')+(ch.length>15?'<li class="na">… +'+(ch.length-15)+' more</li>':'')+'</ul>';
-    }
-    return h+'</details>';
+    var ch=[];
+    ms.forEach(function(m){m.periods.forEach(function(p,i){if(i>0)ch.push({at:p.from,m:m,from:m.periods[i-1].product,to:p.product})})});
+    ch.sort(function(a,b){return a.at<b.at?1:a.at>b.at?-1:0});
+    h+='<details><summary>Module changes ('+ch.length+')</summary>'+(ch.length?'<ul class="chg">'+ch.slice(0,15).map(function(c){
+      return '<li><span class="d">'+dmy(c.at)+'</span><span class="m">'+(many&&c.m.factory?E(c.m.factory)+' ':'')+E(lab(c.m))+'</span><span class="f">'+E(c.from)+' → <b>'+E(c.to)+'</b></span></li>';
+    }).join('')+(ch.length>15?'<li class="na">… +'+(ch.length-15)+' more</li>':'')+'</ul>':'<div class="na" style="padding:0 9px 8px">No change logged</div>')+'</details>';
+    return h;
   }
   function inject(){
     var cards=document.querySelectorAll('#sg article.mc');
@@ -1043,7 +1019,6 @@ initCloud();
   }
   var orig=window.renderMS;
   if(typeof orig==='function'){window.renderMS=function(){var r=orig.apply(this,arguments);try{inject()}catch(e){}return r}}
-  window.MSM_DEBUG=function(){return DATA};          // browser console: MSM_DEBUG() shows the data this block received
   try{inject()}catch(e){}
   try{
     fetch(MOD_URL).then(function(r){return r.json()}).then(function(j){
