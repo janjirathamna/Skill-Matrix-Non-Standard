@@ -982,6 +982,10 @@ initCloud();
 (function(){
   var MOD_URL='https://script.google.com/macros/s/AKfycbxNht563H7COeUnwfF4NUImMsv3bFGoIpiHsE4h1tTrPFemxnskTOBsCw02zQ-ts7G8/exec?type=modules';
   var LS='msm-modules-cache', DATA=null;
+  var TX={en:{fac:'Factory',ver:'Version',mac:'Machine',mod:'Module',run:'Running now',since:'since',chg:'Module changes',none:'No change logged',more:'more',load:'Module: loading…',nodata:'Module: no data for this machine',unk:'Module: not known yet'},
+          zh:{fac:'工厂',ver:'版本',mac:'机台',mod:'模块',run:'当前运行',since:'自',chg:'模块更换',none:'暂无更换记录',more:'更多',load:'模块：加载中…',nodata:'模块：此机台暂无数据',unk:'模块：暂未知'}};
+  function LG(){return 'en'}   // English only. To follow the Problem Report web's EN / 中文 choice later, use: try{return localStorage.getItem('lang')==='zh'?'zh':'en'}catch(e){return 'en'}
+  function t(k){return TX[LG()][k]}
   try{DATA=JSON.parse(localStorage.getItem(LS))}catch(e){}
   function E(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
   function N(s){return String(s||'').replace(/\s+/g,' ').trim().toLowerCase()}
@@ -992,18 +996,18 @@ initCloud();
   var FORD=['Terahop 5000','Ayutthaya','Pinewave'];
   function fo(f){var i=FORD.indexOf(f);return i<0?99:i}
   function mnum(m){var n=parseInt(m.machineNo,10);return isNaN(n)?1e9:n}
-  function runTable(ms){                           // โรงงาน | version | เครื่องที่ | โมดูลที่ผลิต  (factory and version cells are merged)
+  function runTable(ms){                           // Factory | Version | Machine | Module  (factory and version cells are merged; labels follow EN / 中文)
     var rows=ms.slice().sort(function(a,b){return fo(a.factory)-fo(b.factory)||String(a.factory).localeCompare(String(b.factory))||(parseFloat(ver(a))||0)-(parseFloat(ver(b))||0)||mnum(a)-mnum(b)||String(a.machine).localeCompare(String(b.machine))});
     var hasV=rows.some(function(m){return ver(m)});   // cards whose machines have no version in their name keep 3 columns
     var fs={},vs={};
     rows.forEach(function(m){fs[m.factory]=(fs[m.factory]||0)+1;var k=m.factory+'|'+ver(m);vs[k]=(vs[k]||0)+1});
-    var fseen={},vseen={},h='<table class="rt'+(hasV?' v4':'')+'"><thead><tr><th>โรงงาน</th>'+(hasV?'<th>version</th>':'')+'<th>เครื่องที่</th><th>โมดูลที่ผลิต</th></tr></thead><tbody>';
+    var fseen={},vseen={},h='<table class="rt'+(hasV?' v4':'')+'"><thead><tr><th>'+t('fac')+'</th>'+(hasV?'<th>'+t('ver')+'</th>':'')+'<th>'+t('mac')+'</th><th>'+t('mod')+'</th></tr></thead><tbody>';
     rows.forEach(function(m){
       var k=m.factory+'|'+ver(m);
       h+='<tr>';
       if(!fseen[m.factory]){fseen[m.factory]=1;h+='<td class="rf" rowspan="'+fs[m.factory]+'">'+E(m.factory||'–')+'</td>'}
       if(hasV&&!vseen[k]){vseen[k]=1;h+='<td class="rv" rowspan="'+vs[k]+'">'+E(ver(m)||'–')+'</td>'}
-      h+='<td class="mn">'+E(lab(m))+'</td><td>'+(m.current?'<b>'+E(m.current.product)+'</b><span class="since">since '+dmy(m.current.since)+'</span>':'<span class="na">–</span>')+'</td></tr>';
+      h+='<td class="mn">'+E(lab(m))+'</td><td>'+(m.current?'<b>'+E(m.current.product)+'</b><span class="since">'+t('since')+' '+dmy(m.current.since)+'</span>':'<span class="na">–</span>')+'</td></tr>';
     });
     return h+'</tbody></table>';
   }
@@ -1014,19 +1018,19 @@ initCloud();
     return r;
   }
   function box(name){
-    if(!DATA)return '<span class="na">Module: loading…</span>';
+    if(!DATA)return '<span class="na">'+t('load')+'</span>';
     var it=find(name);
-    if(!it||!it.machines||!it.machines.length)return '<span class="na">Module: no data for this machine</span>';
+    if(!it||!it.machines||!it.machines.length)return '<span class="na">'+t('nodata')+'</span>';
     var ms=it.machines,facs={};ms.forEach(function(m){facs[m.factory]=1});
     var many=Object.keys(facs).length>1,h='';
-    if(!ms.some(function(m){return m.current}))h+='<span class="na">Module: not known yet</span>';
-    else h+='<div class="run"><div class="mh"><i></i>Running now</div>'+runTable(ms)+'</div>';
+    if(!ms.some(function(m){return m.current}))h+='<span class="na">'+t('unk')+'</span>';
+    else h+='<div class="run"><div class="mh"><i></i>'+t('run')+'</div>'+runTable(ms)+'</div>';
     var ch=[];
     ms.forEach(function(m){m.periods.forEach(function(p,i){if(i>0)ch.push({at:p.from,m:m,from:m.periods[i-1].product,to:p.product})})});
     ch.sort(function(a,b){return a.at<b.at?1:a.at>b.at?-1:0});
-    h+='<details><summary>Module changes ('+ch.length+')</summary>'+(ch.length?'<ul class="chg">'+ch.slice(0,15).map(function(c){
+    h+='<details><summary>'+t('chg')+' ('+ch.length+')</summary>'+(ch.length?'<ul class="chg">'+ch.slice(0,15).map(function(c){
       return '<li><span class="d">'+dmy(c.at)+'</span><span class="m">'+E(chgLab(c.m,many))+'</span><span class="f">'+E(c.from)+' → <b>'+E(c.to)+'</b></span></li>';
-    }).join('')+(ch.length>15?'<li class="na">… +'+(ch.length-15)+' more</li>':'')+'</ul>':'<div class="na" style="padding:0 9px 8px">No change logged</div>')+'</details>';
+    }).join('')+(ch.length>15?'<li class="na">… +'+(ch.length-15)+' '+t('more')+'</li>':'')+'</ul>':'<div class="na" style="padding:0 9px 8px">'+t('none')+'</div>')+'</details>';
     return h;
   }
   function inject(){
@@ -1037,6 +1041,7 @@ initCloud();
       var d=document.createElement('div');d.className='msm';d.innerHTML=box(t.textContent);a.appendChild(d);
     }
   }
+  window.addEventListener('storage',function(e){if(e.key==='lang'){try{inject()}catch(x){}}});
   var orig=window.renderMS;
   if(typeof orig==='function'){window.renderMS=function(){var r=orig.apply(this,arguments);try{inject()}catch(e){}return r}}
   try{inject()}catch(e){}
