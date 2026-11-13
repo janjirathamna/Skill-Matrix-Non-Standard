@@ -308,6 +308,8 @@ button.phc{cursor:pointer}
   <button class="btn" id="bAddM" hidden>+ Machine</button>
   <button class="btn" id="bCfg">⚙ Config</button>
   <button class="btn" id="bTheme">◐ Theme</button>
+  <button class="btn" id="bCsv">⇩ CSV</button>
+  <button class="btn" id="bPdf">⎙ PDF</button>
   <button class="btn pri" id="bPng">▧ Export PNG</button>
   </div>
  </div>
@@ -955,6 +957,16 @@ initCloud();
 .msm .rt th:nth-child(1){width:34%}.msm .rt th:nth-child(2){width:24%}
 .msm .rt .rf{font-weight:700;color:var(--ink);font-size:.69rem}
 .msm .rt .mn{white-space:nowrap}
+.msm .rt th.st,.msm .rt td.st{width:46px;text-align:center;vertical-align:middle}
+.msm .rt tr.off .mn,.msm .rt tr.off td:nth-last-child(2){opacity:.5}
+.msm .run.allstop{background:rgba(120,130,150,.1);border-color:var(--line)}.msm .run.allstop .mh{color:var(--mute)}.msm .run.allstop .mh i{background:var(--mute)}
+.swb{width:34px;height:18px;border-radius:9px;border:1px solid var(--line);background:var(--mute);position:relative;cursor:pointer;padding:0;vertical-align:middle}
+.swb::after{content:"";position:absolute;top:1px;left:1px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .15s}
+.swb[aria-checked="true"]{background:var(--t0);border-color:var(--t0)}.swb[aria-checked="true"]::after{left:17px}.swb:disabled{opacity:.45;cursor:not-allowed}
+@media print{@page{size:A4 landscape;margin:8mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .bar,.tools,#ft,.toast,dialog{display:none!important}body{background:#fff!important}
+ .wrap,#vM{overflow:visible!important;max-height:none!important}#vM{zoom:.62}th,td{position:static!important}
+ .mc,.lcard,article{break-inside:avoid}}
 .msm .rt.v4 th:nth-child(1){width:26%}.msm .rt.v4 th:nth-child(2){width:13%}.msm .rt.v4 th:nth-child(3){width:12%}
 .msm .rt:not(.v4) th:nth-child(1){width:34%}.msm .rt:not(.v4) th:nth-child(2){width:16%}
 .msm .rt th{overflow:hidden;text-overflow:clip}
@@ -984,8 +996,8 @@ initCloud();
 (function(){
   var MOD_URL='https://script.google.com/macros/s/AKfycbxNht563H7COeUnwfF4NUImMsv3bFGoIpiHsE4h1tTrPFemxnskTOBsCw02zQ-ts7G8/exec?type=modules';
   var LS='msm-modules-cache', DATA=null;
-  var TX={en:{fac:'Factory',ver:'Ver.',mac:'No.',mod:'Module',run:'Running now',since:'since',chg:'Module changes',none:'No change logged',more:'more',load:'Module: loading…',nodata:'Module: no data for this machine',unk:'Module: not known yet'},
-          zh:{fac:'工厂',ver:'版本',mac:'机台',mod:'模块',run:'当前运行',since:'自',chg:'模块更换',none:'暂无更换记录',more:'更多',load:'模块：加载中…',nodata:'模块：此机台暂无数据',unk:'模块：暂未知'}};
+  var TX={en:{fac:'Factory',ver:'Ver.',mac:'No.',mod:'Module',run:'Running now',since:'since',chg:'Module changes',none:'No change logged',more:'more',load:'Module: loading…',nodata:'Module: no data for this machine',unk:'Module: not known yet',norec:'Not recorded',st:'Run',on:'Running',off:'Stopped',stp:'stopped',tog:'Click to switch running / stopped',allstop:'All stopped'},
+          zh:{fac:'工厂',ver:'版本',mac:'机台',mod:'模块',run:'当前运行',since:'自',chg:'模块更换',none:'暂无更换记录',more:'更多',load:'模块：加载中…',nodata:'模块：此机台暂无数据',unk:'模块：暂未知',norec:'未记录',st:'运行',on:'运行中',off:'已停止',stp:'停机于',tog:'点击切换 运行 / 停止',allstop:'全部停止'}};
   function LG(){return 'en'}   // English only. To follow the Problem Report web's EN / 中文 choice later, use: try{return localStorage.getItem('lang')==='zh'?'zh':'en'}catch(e){return 'en'}
   function t(k){return TX[LG()][k]}
   try{DATA=JSON.parse(localStorage.getItem(LS))}catch(e){}
@@ -997,19 +1009,26 @@ initCloud();
   function chgLab(m,many){var p=[];if(many&&m.factory)p.push(m.factory);if(ver(m))p.push(ver(m));p.push(lab(m));return p.join(' · ')}
   var FORD=['Terahop 5000','Ayutthaya','Pinewave'];
   function fo(f){var i=FORD.indexOf(f);return i<0?99:i}
+  var RK='msm-run-state',RS={};try{RS=JSON.parse(localStorage.getItem(RK))||{}}catch(e){}     // machine running / stopped switches (saved in this browser)
+  function rkey(m){return [m.factory,m.machine,m.machineNo].join('|')}
+  function rstate(m){var s=RS[rkey(m)];return {run:!s||s.r!==0,at:s&&s.at||''}}
+  function canSet(){return typeof CAN==='undefined'||CAN!==false}
   function mnum(m){var n=parseInt(m.machineNo,10);return isNaN(n)?1e9:n}
   function runTable(ms){                           // Factory | Version | Machine | Module  (factory and version cells are merged; labels follow EN / 中文)
     var rows=ms.slice().sort(function(a,b){return fo(a.factory)-fo(b.factory)||String(a.factory).localeCompare(String(b.factory))||(parseFloat(ver(a))||0)-(parseFloat(ver(b))||0)||mnum(a)-mnum(b)||String(a.machine).localeCompare(String(b.machine))});
     var hasV=rows.some(function(m){return ver(m)});   // cards whose machines have no version in their name keep 3 columns
     var fs={},vs={};
     rows.forEach(function(m){fs[m.factory]=(fs[m.factory]||0)+1;var k=m.factory+'|'+ver(m);vs[k]=(vs[k]||0)+1});
-    var fseen={},vseen={},h='<table class="rt'+(hasV?' v4':'')+'"><thead><tr><th>'+t('fac')+'</th>'+(hasV?'<th>'+t('ver')+'</th>':'')+'<th>'+t('mac')+'</th><th>'+t('mod')+'</th></tr></thead><tbody>';
+    var fseen={},vseen={},h='<table class="rt'+(hasV?' v4':'')+'"><thead><tr><th>'+t('fac')+'</th>'+(hasV?'<th>'+t('ver')+'</th>':'')+'<th>'+t('mac')+'</th><th>'+t('mod')+'</th><th class="st">'+t('st')+'</th></tr></thead><tbody>';
     rows.forEach(function(m){
       var k=m.factory+'|'+ver(m);
       h+='<tr>';
       if(!fseen[m.factory]){fseen[m.factory]=1;h+='<td class="rf" rowspan="'+fs[m.factory]+'">'+E(m.factory||'–')+'</td>'}
       if(hasV&&!vseen[k]){vseen[k]=1;h+='<td class="rv" rowspan="'+vs[k]+'">'+E(ver(m)||'–')+'</td>'}
-      h+='<td class="mn">'+E(lab(m))+'</td><td>'+(m.current?'<b>'+E(m.current.product)+'</b><span class="since">'+t('since')+' '+dmy(m.current.since)+'</span>':'<span class="na">–</span>')+'</td></tr>';
+      var sv=rstate(m);
+      h+='<td class="mn">'+E(lab(m))+'</td><td>'+(m.current?(m.current.product?'<b>'+E(m.current.product)+'</b>':'<span class="na">'+t('norec')+'</span>')+'<span class="since">'+(sv.run?t('since')+' '+dmy(m.current.since):t('stp')+(sv.at?' '+dmy(sv.at):''))+'</span>':'<span class="na">–</span>')+'</td>'+
+        '<td class="st"><button type="button" class="swb" role="switch" aria-checked="'+sv.run+'" data-rk="'+encodeURIComponent(rkey(m))+'" title="'+E(t('tog'))+'" aria-label="'+E(lab(m))+' '+E(sv.run?t('on'):t('off'))+'"'+(canSet()?'':' disabled')+'></button></td></tr>';
+      if(!sv.run)h=h.replace(/<tr>(?![\s\S]*<tr>)/,'<tr class="off">');
     });
     return h+'</tbody></table>';
   }
@@ -1026,7 +1045,7 @@ initCloud();
     var ms=it.machines,facs={};ms.forEach(function(m){facs[m.factory]=1});
     var many=Object.keys(facs).length>1,h='';
     if(!ms.some(function(m){return m.current}))h+='<span class="na">'+t('unk')+'</span>';
-    else h+='<div class="run"><div class="mh"><i></i>'+t('run')+'</div>'+runTable(ms)+'</div>';
+    else{var nr=ms.filter(function(m){return rstate(m).run}).length;h+='<div class="run'+(nr?'':' allstop')+'"><div class="mh"><i></i>'+(nr?t('run')+' ('+nr+'/'+ms.length+')':t('allstop'))+'</div>'+runTable(ms)+'</div>'}
     var ch=[];
     ms.forEach(function(m){m.periods.forEach(function(p,i){if(i>0)ch.push({at:p.from,m:m,from:m.periods[i-1].product,to:p.product})})});
     ch.sort(function(a,b){return a.at<b.at?1:a.at>b.at?-1:0});
@@ -1043,6 +1062,11 @@ initCloud();
       var d=document.createElement('div');d.className='msm';d.innerHTML=box(t.textContent);a.appendChild(d);
     }
   }
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.swb');if(!b||!canSet())return;
+    var k=decodeURIComponent(b.getAttribute('data-rk')),on=b.getAttribute('aria-checked')==='true';
+    RS[k]={r:on?0:1,at:new Date().toISOString().slice(0,10)};try{localStorage.setItem(RK,JSON.stringify(RS))}catch(x){}
+    inject();});
+  window.MSM={find:find,state:rstate,lab:lab,ver:ver,dmy:dmy};
   window.addEventListener('storage',function(e){if(e.key==='lang'){try{inject()}catch(x){}}});
   var orig=window.renderMS;
   if(typeof orig==='function'){window.renderMS=function(){var r=orig.apply(this,arguments);try{inject()}catch(e){}return r}}
@@ -1055,5 +1079,27 @@ initCloud();
 })();
 </script>
 <!-- ===== end of module history block ===== -->
+<script>
+(function(){
+  function $(i){return document.getElementById(i)}
+  function q(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'}
+  function save(rows,name){var b=new Blob(['\uFEFF'+rows.map(function(r){return r.map(q).join(',')}).join('\r\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+    a.href=URL.createObjectURL(b);a.download=name+'-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1500)}
+  function matrix(){var cj=VJ(),ci=VI(),rows=[['Technician','ID','Date joined','Duration'].concat(cj.map(function(j){return D.eq[j].n}),['Overall skill (avg %)','Work readiness'])];
+    ci.forEach(function(i){var p=D.p[i],v=cj.map(function(j){return p.v[j]||0}),a=avg(v);rows.push([p.n,p.id,p.j,dur(p.j)].concat(v.map(function(x){return Math.round(x*100)}),[(a*100).toFixed(1),NM[tier(a)]]))});return rows}
+  function summary(){var vj=VJ(),vi=VI(),rows=[['Machine','Avg skill %','Ready','Supervised','Training','Basic','Top technician','Factory','Machine no.','Version','Run state','Current module','Module since','Stopped since']];
+    vj.forEach(function(j){var e=D.eq[j],v=vi.map(function(i){return D.p[i].v[j]||0}),a=avg(v),c=[0,0,0,0],b=-1;v.forEach(function(x,k){c[tier(x)]++;if(b<0||x>v[b])b=k});
+      var base=[e.n,(a*100).toFixed(1)].concat(c,[b>=0?D.p[vi[b]].n+' ('+Math.round(v[b]*100)+'%)':'']),it=window.MSM&&MSM.find(e.n),ms=it&&it.machines||[];
+      if(!ms.length)rows.push(base.concat(['','','','','','','']));
+      else ms.forEach(function(m){var s=MSM.state(m);rows.push(base.concat([m.factory,MSM.lab(m),MSM.ver(m),s.run?'Running':'Stopped',m.current?(m.current.product||'Not recorded'):'',m.current?MSM.dmy(m.current.since):'',s.run?'':MSM.dmy(s.at)]))})});return rows}
+  function location(){var rows=[['Site','Name','Asset no.','Serial','Group']];LOC.sites.forEach(function(S){S.items.forEach(function(i){if(i.k==='m')rows.push([S.name,i.n,i.a,i.s,i.v])})});return rows}
+  $('bCsv').onclick=function(){var v=window.view;
+    if(v==='S')save(summary(),'machine-summary');else if(v==='L')save(location(),'machine-location');else save(matrix(),'skill-matrix')};
+  var pt;addEventListener('beforeprint',function(){pt=document.documentElement.getAttribute('data-theme');theme('light')});
+  addEventListener('afterprint',function(){theme(pt)});
+  $('bPdf').onclick=function(){window.print()};
+  var o=window.showView;if(typeof o==='function'){window.showView=function(v){var r=o.apply(this,arguments);$('bCsv').hidden=(v==='T');return r}}
+})();
+</script>
 </body>
 </html>
