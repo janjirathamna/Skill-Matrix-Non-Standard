@@ -700,6 +700,7 @@ function renderLoc(first){var S=LOC.sites[lsite];
  $("lg2").innerHTML=S.legend.map(function(l){return '<button class="kc vf'+(lf===l.n?" on":"")+'" data-v="'+esc(l.n)+'"><i class="dot" style="background:'+l.f+'"></i>'+esc(l.n)+' <b>'+(cnt[l.n]||0)+'</b></button>'}).join("")+'<span class="kc"><b>'+n+'</b> machines</span>';
  if(!lz||first){var w=$("map").parentNode.clientWidth||1200;lz=Math.max(.3,Math.min(1,(w-4)/bbox(S).w))}
  drawMap();renderAll();renderPhs()}
+function rsHandle(S){var it=ledit&&!lrm&&lsel>=0?S.items[lsel]:null;if(!it)return"";var q=Math.max(24,Math.round(18/lz));return'<rect data-rs="'+lsel+'" x="'+(it.x+it.w-q)+'" y="'+(it.y+it.h-q)+'" width="'+q+'" height="'+q+'" rx="4" fill="#102a52" stroke="#fff" stroke-width="3" style="cursor:nwse-resize;touch-action:none"/>'}
 function drawMap(){var S=LOC.sites[lsite],bb=bbox(S),z=lz,hits=0,s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+bb.x+" "+bb.y+" "+bb.w+" "+bb.h+'" width="'+Math.round(bb.w*z)+'" height="'+Math.round(bb.h*z)+'" role="img" aria-label="Floor layout of '+esc(S.name)+'">';
  S.floor.forEach(function(f){s+='<rect x="'+f[0]+'" y="'+f[1]+'" width="'+f[2]+'" height="'+f[3]+'" style="fill:var(--floor)"/>'});
  S.items.forEach(function(it,i){var ok=vmatch(it);if(ok&&it.k==="m"&&(lf||lqs))hits++;
@@ -709,7 +710,7 @@ function drawMap(){var S=LOC.sites[lsite],bb=bbox(S),z=lz,hits=0,s='<svg xmlns="
   if(iw)s+='<image href="'+esc(ph.src)+'" x="'+(it.x+4)+'" y="'+(it.y+4)+'" width="'+(iw-4)+'" height="'+(it.h-8)+'" preserveAspectRatio="xMidYMid slice"/>';
   lines.forEach(function(l,k){var f=k?fs*.72:fs;s+='<text x="'+(bx+bw/2)+'" y="'+(y0+k*fs*1.3)+'" text-anchor="middle" dominant-baseline="middle" font-size="'+f+'" font-weight="'+(k?400:700)+'" fill="'+tc+'">'+esc(tr(l,Math.floor(bw/(f*.55))))+"</text>"});
   s+="</g>"});
- $("map").innerHTML=s+(ledit&&lrm?bands(S):"")+"</svg>";$("zv").textContent=Math.round(z*100)+"%";
+ $("map").innerHTML=s+rsHandle(S)+(ledit&&lrm?bands(S):"")+"</svg>";$("zv").textContent=Math.round(z*100)+"%";
  $("lc").textContent=(lf||lqs)?hits+" match"+(hits===1?"":"es"):""}
 function detail(it){var h="<h3>"+esc(it.n)+"</h3>"+(it.k==="m"?photoBlock(it):"")+"<dl><dt>Type</dt><dd>"+KIND[it.k]+"</dd>";
  if(it.k==="m")h+="<dt>Vendor group</dt><dd>"+esc(it.v)+"</dd><dt>Asset no.</dt><dd>"+esc(it.a||"–")+"</dd><dt>Serial no.</dt><dd>"+esc(it.s||"–")+"</dd>";
@@ -819,11 +820,21 @@ function showLD(){if(ledit&&lrm){rowPanel();return}var S=LOC.sites[lsite],it=S.i
  if(!ledit){$("ld").innerHTML=detail(it);return}
  var h='<h3>Edit '+KIND[it.k].toLowerCase()+'</h3>'+(it.k==="m"?photoBlock(it):"")+'<div class="lf"><label>Name<input type="text" id="eN" value="'+esc(it.n)+'"></label>';
  if(it.k==="m")h+='<label>Asset no.<input type="text" id="eA" value="'+esc(it.a||"")+'"></label><label>Serial no.<input type="text" id="eS" value="'+esc(it.s||"")+'"></label><label>Vendor group<select id="eV">'+S.legend.map(function(l){return "<option"+(l.n===it.v?" selected":"")+">"+esc(l.n)+"</option>"}).join("")+"</select></label>";
- $("ld").innerHTML=h+'</div><div class="acts"><span></span><button class="btn" id="eDel">Delete</button></div>'}
+ h+='<label>Type<select id="eK">'+Object.keys(KIND).map(function(k){return'<option value="'+k+'"'+(k===it.k?' selected':'')+'>'+KIND[k]+'</option>'}).join("")+'</select></label>'+
+  '<label>Block width<input type="number" id="eW" min="40" max="3000" step="10" value="'+Math.round(it.w)+'"></label><label>Block height<input type="number" id="eH" min="30" max="3000" step="10" value="'+Math.round(it.h)+'"></label>'+
+  '<label>Block colour<input type="color" id="eC" value="'+hex6(it.f)+'"></label>';
+ $("ld").innerHTML=h+'</div><p style="margin:2px 0 8px;font-size:.78rem;color:var(--mute)">Tip: drag the dark square at the bottom-right corner of the selected block to resize it.</p><div class="acts"><span><button class="btn" id="eSz">Apply this size to all machines</button> <button class="btn" id="eRc">Colour = vendor group</button></span><button class="btn" id="eDel">Delete</button></div>'}
+function hex6(c){c=String(c||"").trim();if(/^#[0-9a-f]{6}$/i.test(c))return c;var m=/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(c);if(m)return"#"+m[1]+m[1]+m[2]+m[2]+m[3]+m[3];var r=/rgba?\((\d+)\D+(\d+)\D+(\d+)/.exec(c);if(r)return"#"+[1,2,3].map(function(i){return("0"+(+r[i]).toString(16)).slice(-2)}).join("");return"#cccccc"}
 $("ld").addEventListener("input",function(e){var it=LOC.sites[lsite].items[lsel];if(!it||!ledit)return;var id=e.target.id;
- if(id==="eN"){it.n=e.target.value;var w=$("lphw");if(w)w.innerHTML=photoInner(it)}else if(id==="eA")it.a=e.target.value;else if(id==="eS")it.s=e.target.value;else return;locSave();drawMap()});
-$("ld").addEventListener("change",function(e){if(e.target.id!=="eV")return;var S=LOC.sites[lsite],it=S.items[lsel],l=S.legend.filter(function(x){return x.n===e.target.value})[0];if(it&&l){it.v=l.n;it.f=l.f;locSave();renderLoc()}});
-$("ld").addEventListener("click",function(e){if(e.target.id!=="eDel")return;var S=LOC.sites[lsite],it=S.items[lsel];if(!it)return;
+ if(id==="eN"){it.n=e.target.value;var w=$("lphw");if(w)w.innerHTML=photoInner(it)}else if(id==="eA")it.a=e.target.value;else if(id==="eS")it.s=e.target.value;
+ else if(id==="eW"||id==="eH"){var nv=+e.target.value;if(!(nv>=30))return;if(id==="eW")it.w=Math.min(3000,nv);else it.h=Math.min(3000,nv);LOC.sites[lsite].bb=null}
+ else if(id==="eC")it.f=e.target.value;else return;locSave();drawMap()});
+$("ld").addEventListener("change",function(e){if(e.target.id==="eK"){var it0=LOC.sites[lsite].items[lsel];if(it0&&KIND[e.target.value]){it0.k=e.target.value;locSave();renderLoc();showLD()}return}if(e.target.id!=="eV")return;var S=LOC.sites[lsite],it=S.items[lsel],l=S.legend.filter(function(x){return x.n===e.target.value})[0];if(it&&l){it.v=l.n;it.f=l.f;locSave();renderLoc()}});
+$("ld").addEventListener("click",function(e){if(e.target.id==="eSz"||e.target.id==="eRc"){var S0=LOC.sites[lsite],it1=S0.items[lsel];if(!it1)return;var sn1=locJson();
+  if(e.target.id==="eSz"){S0.items.forEach(function(q){if(q.k==="m"){q.w=it1.w;q.h=it1.h}});S0.bb=null}
+  else{var l1=S0.legend.filter(function(x){return x.n===it1.v})[0];if(l1)it1.f=l1.f}
+  locSave();renderLoc();showLD();toast2(e.target.id==="eSz"?"Size applied to all machines":"Colour reset",function(){applyLoc(JSON.parse(sn1));locSave();renderLoc();showLD()});return}
+ if(e.target.id!=="eDel")return;var S=LOC.sites[lsite],it=S.items[lsel];if(!it)return;
  var snap0=locJson(),nm=it.n;S.items.splice(lsel,1);lsel=-1;locSave();renderLoc();showLD();
  toast2("Removed "+nm,function(){applyLoc(JSON.parse(snap0));locSave();renderLoc();showLD()})});
 $("bLEd").onclick=function(){ledit=!ledit;setLEdit()};
@@ -832,16 +843,17 @@ $("bLAdd").onclick=function(){var S=LOC.sites[lsite],ms=S.items.filter(function(
  S.items.push({k:"m",n:"New machine",a:"",s:"",v:l.n,f:l.f,x:sn(cx-w/2),y:sn(cy-h/2),w:w,h:h,ref:"added"});
  lsel=S.items.length-1;locSave();renderLoc();showLD();var n=$("eN");if(n){n.focus();n.select()}};
 $("bLReset").onclick=function(){var snap0=locJson();applyLoc({s:clone(LOC0),a:clone(LOCA0)});lsel=-1;locSave();renderLoc();showLD();toast2("Layout restored to the Excel file",function(){applyLoc(JSON.parse(snap0));locSave();renderLoc();showLD()})};
-$("map").addEventListener("pointerdown",function(e){if(!ledit||e.button>0)return;var S=LOC.sites[lsite],gi=e.target.closest("[data-i]"),gr=e.target.closest("[data-rw]"),r=null;
+$("map").addEventListener("pointerdown",function(e){if(!ledit||e.button>0)return;var rsh=e.target.closest("[data-rs]");if(rsh&&!lrm){var ri=+rsh.dataset.rs,rit=LOC.sites[lsite].items[ri];if(rit){drag={rs:1,i:ri,sx:e.clientX,sy:e.clientY,ow:rit.w,oh:rit.h,moved:false};e.preventDefault();return}}var S=LOC.sites[lsite],gi=e.target.closest("[data-i]"),gr=e.target.closest("[data-rw]"),r=null;
  if(lrm){var rows=rowsOf(S);if(gr)r=rows.filter(function(x){return x.k===+gr.dataset.rw})[0];else if(gi){var ii=+gi.dataset.i;r=rows.filter(function(x){return x.ix.indexOf(ii)>=0})[0]}}
  if(r){lrowk=r.k;lsel=-1;drag={row:1,list:r.ix.map(function(i){return{i:i,ox:S.items[i].x,oy:S.items[i].y}}),sx:e.clientX,sy:e.clientY,moved:false};rowPanel();e.preventDefault();return}
  if(!gi)return;var i=+gi.dataset.i,it=S.items[i];drag={i:i,g:gi,sx:e.clientX,sy:e.clientY,ox:it.x,oy:it.y,moved:false};
  if(lsel!==i){lsel=i;showLD()}e.preventDefault()});
 window.addEventListener("pointermove",function(e){if(!drag)return;
  if(!drag.moved&&Math.abs(e.clientX-drag.sx)+Math.abs(e.clientY-drag.sy)<5)return;drag.moved=true;var S=LOC.sites[lsite],dx=(e.clientX-drag.sx)/lz,dy=(e.clientY-drag.sy)/lz;
+ if(drag.rs){var ri=S.items[drag.i];ri.w=Math.max(60,sn(drag.ow+dx));ri.h=Math.max(40,sn(drag.oh+dy));drawMap();return}
  if(drag.row){var sx=sn(dx),sy=sn(dy);drag.list.forEach(function(q){var it=S.items[q.i];it.x=q.ox+sx;it.y=q.oy+sy;var g=$("map").querySelector('g[data-i="'+q.i+'"]');if(g)g.setAttribute("transform","translate("+sx+","+sy+")")});return}
  var it=S.items[drag.i];it.x=sn(drag.ox+dx);it.y=sn(drag.oy+dy);drag.g.setAttribute("transform","translate("+(it.x-drag.ox)+","+(it.y-drag.oy)+")")});
-window.addEventListener("pointerup",function(){if(!drag)return;var d=drag;drag=null;if(d.moved){LOC.sites[lsite].bb=null;locSave()}drawMap();if(d.row)rowPanel()});
+window.addEventListener("pointerup",function(){if(!drag)return;var d=drag;drag=null;if(d.moved){LOC.sites[lsite].bb=null;locSave()}drawMap();if(d.row)rowPanel();if(d.rs&&d.moved)showLD();if(!d.moved&&ledit&&!d.row&&!d.rs&&$("ld").scrollIntoView)$("ld").scrollIntoView({block:"nearest",behavior:"smooth"})});
 
 var TK="wbm-v2-copy-train",tsel=0,tedit=false,topen={},tsnap="",fmCb=null,atL="",lastT="";
 var T0={title:"设备维修新人跟岗培训计划",chip:"8-week on-the-job training (8 周跟岗培训)",sub:"从设备基础认知到视觉系统进阶，按周递进的跟岗培训，帮助你逐步掌握机台操作与维护",period:"8 weeks",dept:"制造部-制造工程-RX制程-光学设备维修组",banner:"",bi:"",
