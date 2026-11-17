@@ -372,7 +372,8 @@ window.FBLOB=function(id){return window.cloudImg?'https://drive.google.com/file/
   function pass(){try{return localStorage.getItem(PK)||''}catch(e){return ''}}
   function get(a){return fetch(API+(API.indexOf('?')<0?'?':'&')+'action='+a+'&_='+Date.now()).then(function(r){return r.json()}).then(function(j){if(!j.ok)throw new Error(j.error||'cloud');return j})}
   function post(b){b.pass=pass();return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)}).then(function(r){return r.json()}).then(function(j){if(!j.ok){var e=new Error(j.error||'cloud');if(j.denied)e.code='invalid_argument';throw e}return j})}
-  function loadAll(force){if(cache&&!force)return Promise.resolve(cache);return get('all').then(function(j){needPass=!!j.needPass;cache=j.docs||{};Object.keys(cache).forEach(function(k){vers[k]=String(cache[k].at)});return cache})}
+  var lastErr='';
+  function loadAll(force){if(cache&&!force)return Promise.resolve(cache);return get('all').then(function(j){lastErr='';needPass=!!j.needPass;cache=j.docs||{};Object.keys(cache).forEach(function(k){vers[k]=String(cache[k].at)});return cache},function(e){lastErr=String(e);console.error('SkillCloud:',e);throw e})}
   var DB={doc:function(path){return{
     get:function(){return loadAll().then(function(c){var d=c[path];return{exists:!!d,data:function(){return d}}})},
     set:function(o){return post({action:'set',path:path,json:o.json,at:o.at}).then(function(){cache=cache||{};cache[path]={json:o.json,at:o.at};vers[path]=String(o.at)})},
@@ -391,10 +392,11 @@ window.FBLOB=function(id){return window.cloudImg?'https://drive.google.com/file/
     w.innerHTML='<style>@media print{#cloudW{display:none}}#cloudW button{display:block;width:100%;text-align:left;margin:2px 0;padding:5px 8px;border:1px solid #8884;border-radius:6px;background:#fff;color:#111;cursor:pointer;font:inherit}</style><button id="cB" style="width:auto;border-radius:16px">☁</button><div id="cM" style="display:none;width:190px;padding:6px;border:1px solid #8886;border-radius:8px;background:#fffffff2"></div>';
     document.body.appendChild(w);var m=w.querySelector('#cM');
     w.querySelector('#cB').onclick=function(){m.style.display=m.style.display==='none'?'block':'none';
-      m.innerHTML=(needPass?'<button id="cU">🔑 Unlock editing</button><button id="cL">🔒 Lock</button>':'')+'<button id="cE">⬇ Export data (JSON)</button><button id="cI">⬆ Import data (JSON)</button><input type="file" id="cF" accept=".json" hidden>';
+      m.innerHTML=(needPass?'<button id="cU">🔑 Unlock editing</button><button id="cL">🔒 Lock</button>':'')+'<button id="cT">🔍 Test cloud connection</button><button id="cE">⬇ Export data (JSON)</button><button id="cI">⬆ Import data (JSON)</button><input type="file" id="cF" accept=".json" hidden>';
       var q=function(i){return m.querySelector(i)};
       if(q('#cU'))q('#cU').onclick=function(){var v=prompt('Passcode');if(v===null)return;try{localStorage.setItem(PK,v)}catch(e){}location.reload()};
       if(q('#cL'))q('#cL').onclick=function(){try{localStorage.removeItem(PK)}catch(e){}location.reload()};
+      q('#cT').onclick=function(){fetch(API+(API.indexOf('?')<0?'?':'&')+'action=ver&_='+Date.now()).then(function(r){return r.text()}).then(function(t){alert((lastErr?'Last error: '+lastErr+'\n\n':'')+'Server answered:\n'+t.slice(0,300))}).catch(function(e){alert('Could not reach the script ('+e+').\nCheck: deployed as Web app, Execute as Me, access = Anyone, and the URL ends with /exec')})};
       q('#cE').onclick=function(){var b=new Blob([JSON.stringify({d:D,c:JSON.parse(cfgJson()),l:JSON.parse(locJson()),t:T})],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='skill-data-'+new Date().toISOString().slice(0,10)+'.json';a.click()};
       q('#cI').onclick=function(){if(!CAN){alert('View only - unlock editing first');return}q('#cF').click()};
       q('#cF').onchange=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var o=JSON.parse(r.result);
