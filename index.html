@@ -304,6 +304,7 @@ button.phc{cursor:pointer}
   <div class="tabs"><button class="btn" id="tM" aria-pressed="true">Skill Matrix</button><button class="btn" id="tR" aria-pressed="false">Radar Cards</button><button class="btn" id="tS" aria-pressed="false">Machine Summary</button><button class="btn" id="tL" aria-pressed="false">Machine Location</button><button class="btn" id="tT" aria-pressed="false">New-hire Training</button></div>
   <div class="tools">
   <span class="sv" id="sv"></span>
+  <button class="btn" id="bLogin">🔑 Login</button>
   <button class="btn" id="bEdit">✎ Edit</button>
   <button class="btn" id="bAddP" hidden>+ Technician</button>
   <button class="btn" id="bAddM" hidden>+ Machine</button>
@@ -1297,6 +1298,29 @@ initCloud();
   addEventListener('afterprint',function(){theme(pt)});
   $('bPdf').onclick=function(){window.print()};
   var o=window.showView;if(typeof o==='function'){window.showView=function(v){var r=o.apply(this,arguments);$('bCsv').hidden=(v==='T');return r}}
+})();
+</script>
+<script>
+/* ===== LOGIN: Skill Matrix + Radar Cards tabs are hidden until the PIN is entered ===== */
+(function(){
+  var PIN='00000', K='skill-login';          // <-- change the PIN here
+  var $=function(i){return document.getElementById(i)};
+  var ok=function(){try{return sessionStorage.getItem(K)==='1'}catch(e){return false}};
+  var o=window.showView;
+  window.showView=function(v){ if(!ok()&&(v==='M'||v==='R'))v='S'; return o.call(this,v) };   // block M / R while locked
+  function apply(){
+    var on=ok();
+    $('tM').hidden=$('tR').hidden=!on;
+    $('bLogin').textContent=on?'\uD83D\uDD12 Logout':'\uD83D\uDD11 Login';
+    if(!on&&(view==='M'||view==='R'))window.showView('S');
+  }
+  $('bLogin').onclick=function(){
+    if(ok()){try{sessionStorage.removeItem(K)}catch(e){} apply();return}
+    var v=prompt('Password');if(v===null)return;
+    if(v===PIN){try{sessionStorage.setItem(K,'1')}catch(e){} apply();window.showView('M')}
+    else alert('Wrong password');
+  };
+  apply();
 })();
 </script>
 </body>
