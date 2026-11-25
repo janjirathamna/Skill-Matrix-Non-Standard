@@ -1261,7 +1261,7 @@ initCloud();
     for(var i=0;i<cards.length;i++){
       var a=cards[i],t=a.querySelector('h3');if(!t)continue;
       var old=a.querySelector('.msm');if(old)old.remove();
-      var d=document.createElement('div');d.className='msm';d.innerHTML=box(t.textContent);a.appendChild(d);
+      
     }
   }
   var armK='',armT=0,armX=0;       // the switch needs two clicks / taps within 0.8 s, so a stray tap while scrolling changes nothing
@@ -1277,7 +1277,7 @@ initCloud();
   if(typeof orig==='function'){window.renderMS=function(){var r=orig.apply(this,arguments);try{inject()}catch(e){}return r}}
   try{inject()}catch(e){}
   try{
-    fetch(MOD_URL).then(function(r){return r.json()}).then(function(j){
+    Promise.reject().then(function(r){return r.json()}).then(function(j){
       if(j&&j.ok){DATA=j;try{localStorage.setItem(LS,JSON.stringify(j))}catch(e){}inject()}
     }).catch(function(){});
   }catch(e){}
@@ -1292,11 +1292,9 @@ initCloud();
     a.href=URL.createObjectURL(b);a.download=name+'-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1500)}
   function matrix(){var cj=VJ(),ci=VI(),rows=[['Technician','ID','Date joined','Duration'].concat(cj.map(function(j){return D.eq[j].n}),['Overall skill (avg %)','Work readiness'])];
     ci.forEach(function(i){var p=D.p[i],v=cj.map(function(j){return p.v[j]||0}),a=avg(v);rows.push([p.n,p.id,p.j,dur(p.j)].concat(v.map(function(x){return Math.round(x*100)}),[(a*100).toFixed(1),NM[tier(a)]]))});return rows}
-  function summary(){var vj=VJ(),vi=VI(),rows=[['Machine','Avg skill %','Ready','Supervised','Training','Basic','Top technician','Factory','Machine no.','Version','Run state','Current module','Module since','Stopped since']];
+  function summary(){var vj=VJ(),vi=VI(),rows=[['Machine','Avg skill %','Ready','Supervised','Training','Basic','Top technician']];
     vj.forEach(function(j){var e=D.eq[j],v=vi.map(function(i){return D.p[i].v[j]||0}),a=avg(v),c=[0,0,0,0],b=-1;v.forEach(function(x,k){c[tier(x)]++;if(b<0||x>v[b])b=k});
-      var base=[e.n,(a*100).toFixed(1)].concat(c,[b>=0?D.p[vi[b]].n+' ('+Math.round(v[b]*100)+'%)':'']),it=window.MSM&&MSM.find(e.n),ms=it&&it.machines||[];
-      if(!ms.length)rows.push(base.concat(['','','','','','','']));
-      else ms.forEach(function(m){var s=MSM.state(m);rows.push(base.concat([m.factory,MSM.lab(m),MSM.ver(m),s.run?'Running':'Stopped',m.current?(m.current.product||'Not recorded'):'',m.current?MSM.dmy(m.current.since):'',s.run?'':MSM.dmy(s.at)]))})});return rows}
+      rows.push([e.n,(a*100).toFixed(1)].concat(c,[b>=0?D.p[vi[b]].n+' ('+Math.round(v[b]*100)+'%)':'']))});return rows}
   function location(){var rows=[['Site','Name','Asset no.','Serial','Group']];LOC.sites.forEach(function(S){S.items.forEach(function(i){if(i.k==='m')rows.push([S.name,i.n,i.a,i.s,i.v])})});return rows}
   $('bCsv').onclick=function(){var v=window.view;
     if(v==='S')save(summary(),'machine-summary');else if(v==='L')save(location(),'machine-location');else save(matrix(),'skill-matrix')};
