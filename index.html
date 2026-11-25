@@ -156,6 +156,8 @@ tfoot .nm{background:var(--eqh);font-size:.8rem}
 .lf{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:8px}
 .lf label{display:grid;gap:4px;font-size:.84rem;color:var(--mute)}
 .lf input,.lf select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px}
+.pwv{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em;user-select:all}
+.mt{display:grid;gap:6px;font-size:.84rem;color:var(--mute)}.mtc{display:flex;flex-wrap:wrap;gap:6px}.mtg{display:inline-flex;align-items:center;gap:4px;background:var(--tlbg);color:var(--tl);border-radius:999px;padding:2px 4px 2px 10px;font-weight:700;font-size:.78rem}.mtg button{border:0;background:none;color:inherit;cursor:pointer;padding:0 5px;font:inherit}.mtr{display:flex;gap:6px}.mtr input{flex:1;min-width:0}
 .hb{font:inherit;font-size:.72rem;background:var(--panel);color:var(--mute);border:1px solid var(--line);border-radius:4px;padding:1px 8px}
 .tb{display:flex;gap:6px;justify-content:center;align-items:center;margin-top:4px}
 .nm .tb{justify-content:flex-start}
@@ -728,7 +730,7 @@ function drawMap(){var S=LOC.sites[lsite],bb=bbox(S),z=lz,hits=0,s='<svg xmlns="
  $("map").innerHTML=s+selOverlay(S)+(ledit&&lrm?bands(S):"")+"</svg>";$("zv").textContent=Math.round(z*100)+"%";
  $("lc").textContent=(lf||lqs)?hits+" match"+(hits===1?"":"es"):""}
 function detail(it){var h="<h3>"+esc(it.n)+"</h3>"+(it.k==="m"?photoBlock(it):"")+"<dl><dt>Type</dt><dd>"+KIND[it.k]+"</dd>";
- if(it.k==="m")h+="<dt>Vendor group</dt><dd>"+esc(it.v)+"</dd><dt>Asset no.</dt><dd>"+esc(it.a||"–")+"</dd><dt>Serial no.</dt><dd>"+esc(it.s||"–")+"</dd>";
+ if(it.k==="m")h+="<dt>Vendor group</dt><dd>"+esc(it.v)+"</dd><dt>Asset no.</dt><dd>"+esc(it.a||"–")+"</dd><dt>Serial no.</dt><dd>"+esc(it.s||"–")+"</dd><dt>Password</dt><dd>"+(it.pw?'<span class="pwv">'+esc(it.pw)+'</span>':"–")+"</dd>";
  return h+"<dt>Site</dt><dd>"+esc(LOC.sites[lsite].name)+"</dd><dt>Excel cell</dt><dd>"+esc(it.ref)+"</dd></dl>"}
 function rowsGeo_(S,idx0){var idx=idx0.slice();
  idx.sort(function(a,b){return S.items[a].y-S.items[b].y||S.items[a].x-S.items[b].x});
@@ -858,14 +860,14 @@ function showLD(){if(ledit&&lrm){rowPanel();return}var S=LOC.sites[lsite],it=S.i
  if(!it){$("ld").textContent=ledit?"Drag a machine to move it (it snaps to the other machines - hold Alt to move freely). Click a machine to edit it, click the gray floor to edit a gray band, or use + Machine / + Row / + Gray band.":"Click a machine on the map to see its details.";return}
  if(!ledit){$("ld").innerHTML=detail(it);return}
  var h='<h3>Edit '+KIND[it.k].toLowerCase()+'</h3>'+(it.k==="m"?photoBlock(it):"")+'<div class="lf"><label>Name<input type="text" id="eN" value="'+esc(it.n)+'"></label>';
- if(it.k==="m")h+='<label>Asset no.<input type="text" id="eA" value="'+esc(it.a||"")+'"></label><label>Serial no.<input type="text" id="eS" value="'+esc(it.s||"")+'"></label><label>Vendor group<select id="eV">'+S.legend.map(function(l){return "<option"+(l.n===it.v?" selected":"")+">"+esc(l.n)+"</option>"}).join("")+"</select></label>";
+ if(it.k==="m")h+='<label>Asset no.<input type="text" id="eA" value="'+esc(it.a||"")+'"></label><label>Serial no.<input type="text" id="eS" value="'+esc(it.s||"")+'"></label><label>Machine password<input type="text" id="eP" value="'+esc(it.pw||"")+'" autocomplete="off"></label><label>Vendor group<select id="eV">'+S.legend.map(function(l){return "<option"+(l.n===it.v?" selected":"")+">"+esc(l.n)+"</option>"}).join("")+"</select></label>";
  h+='<label>Type<select id="eK">'+Object.keys(KIND).map(function(k){return'<option value="'+k+'"'+(k===it.k?' selected':'')+'>'+KIND[k]+'</option>'}).join("")+'</select></label>'+
   '<label>Block width<input type="number" id="eW" min="40" max="3000" step="10" value="'+Math.round(it.w)+'"></label><label>Block height<input type="number" id="eH" min="30" max="3000" step="10" value="'+Math.round(it.h)+'"></label>'+
   '<label>Block colour<input type="color" id="eC" value="'+hex6(it.f)+'"></label>';
  $("ld").innerHTML=h+'</div><p style="margin:2px 0 8px;font-size:.78rem;color:var(--mute)">Tip: drag the dark square at the bottom-right corner of the selected block to resize it.</p><div class="acts"><span><button class="btn" id="eSz">Apply this size to all machines</button> <button class="btn" id="eRc">Colour = vendor group</button></span><button class="btn" id="eDel">Delete</button></div>'}
 function hex6(c){c=String(c||"").trim();if(/^#[0-9a-f]{6}$/i.test(c))return c;var m=/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(c);if(m)return"#"+m[1]+m[1]+m[2]+m[2]+m[3]+m[3];var r=/rgba?\((\d+)\D+(\d+)\D+(\d+)/.exec(c);if(r)return"#"+[1,2,3].map(function(i){return("0"+(+r[i]).toString(16)).slice(-2)}).join("");return"#cccccc"}
 $("ld").addEventListener("input",function(e){var it=LOC.sites[lsite].items[lsel];if(!it||!ledit)return;var id=e.target.id;
- if(id==="eN"){it.n=e.target.value;var w=$("lphw");if(w)w.innerHTML=photoInner(it)}else if(id==="eA")it.a=e.target.value;else if(id==="eS")it.s=e.target.value;
+ if(id==="eN"){it.n=e.target.value;var w=$("lphw");if(w)w.innerHTML=photoInner(it)}else if(id==="eA")it.a=e.target.value;else if(id==="eS")it.s=e.target.value;else if(id==="eP")it.pw=e.target.value;
  else if(id==="eW"||id==="eH"){var nv=+e.target.value;if(!(nv>=30))return;if(id==="eW")it.w=Math.min(3000,nv);else it.h=Math.min(3000,nv);LOC.sites[lsite].bb=null}
  else if(id==="eC")it.f=e.target.value;else return;locSave();drawMap()});
 $("ld").addEventListener("change",function(e){if(e.target.id==="eK"){var it0=LOC.sites[lsite].items[lsel];if(it0&&KIND[e.target.value]){it0.k=e.target.value;locSave();renderLoc();showLD()}return}if(e.target.id!=="eV")return;var S=LOC.sites[lsite],it=S.items[lsel],l=S.legend.filter(function(x){return x.n===e.target.value})[0];if(it&&l){it.v=l.n;it.f=l.f;locSave();renderLoc()}});
@@ -881,7 +883,7 @@ $("bLAdd").onclick=function(){var S=LOC.sites[lsite],ms=S.items.filter(function(
  cx=bb.x+(wr.scrollLeft+wr.clientWidth/2)/lz,cy=bb.y+(wr.scrollTop+Math.min(wr.clientHeight,500)/2)/lz,l=S.legend[0]||{n:"Other",f:"#e0e0e0"};
  S.items.push({k:"m",n:"New machine",a:"",s:"",v:l.n,f:l.f,x:sn(cx-w/2),y:sn(cy-h/2),w:w,h:h,ref:"added",rid:nextRid(S)});
  lsel=S.items.length-1;locSave();renderLoc();showLD();var n=$("eN");if(n){n.focus();n.select()}};
-$("bLReset").onclick=function(){var snap0=locJson();applyLoc({s:clone(LOC0),f:clone(FLOOR0),a:clone(LOCA0)});lsel=-1;locSave();renderLoc();showLD();toast2("Layout restored to the Excel file",function(){applyLoc(JSON.parse(snap0));locSave();renderLoc();showLD()})};
+$("bLReset").onclick=function(){var snap0=locJson(),pwm={};LOC.sites.forEach(function(S,si){S.items.forEach(function(i){if(i.pw)pwm[si+"|"+i.n+"|"+i.a+"|"+i.s]=i.pw})});applyLoc({s:clone(LOC0),f:clone(FLOOR0),a:clone(LOCA0)});LOC.sites.forEach(function(S,si){S.items.forEach(function(i){var k=si+"|"+i.n+"|"+i.a+"|"+i.s;if(pwm[k])i.pw=pwm[k]})});lsel=-1;locSave();renderLoc();showLD();toast2("Layout restored to the Excel file",function(){applyLoc(JSON.parse(snap0));locSave();renderLoc();showLD()})};
 
 /* ===== gray floor bands + snapping (v2) ===== */
 var lfsel=-1,snapOn=(function(){try{return localStorage.getItem("msm-snap")!=="0"}catch(e){return true}})(),GAP=30;
@@ -1013,15 +1015,21 @@ function initials(n){var w=n.trim().split(/\s+/),a=w[0]||"?";return(a[0]+(w.leng
 function fsz(b){return b>1048576?(b/1048576).toFixed(1)+" MB":Math.max(1,Math.round(b/1024))+" KB"}
 function findL(id){for(var i=0;i<T.stages.length;i++)for(var k=0;k<T.stages[i].ls.length;k++)if(T.stages[i].ls[k].id===id)return{s:T.stages[i],l:T.stages[i].ls[k],k:k};return null}
 function findS(id){return T.stages.filter(function(s){return s.id===id})[0]}
+function trainersOf(x){return Array.isArray(x.trs)?x.trs.filter(Boolean):(x.tr?String(x.tr).split(/\s*[,，、]\s*/).filter(Boolean):[])}
+function mtChips(box){var a=JSON.parse(box.dataset.v||"[]");box.querySelector(".mtc").innerHTML=a.map(function(n,i){return'<span class="mtg">'+esc(n)+'<button type="button" data-mx="'+i+'" aria-label="Remove '+esc(n)+'">✕</button></span>'}).join("")}
+function mtAdd(box){var inp=box.querySelector("input"),n=inp.value.trim();if(!n)return;var a=JSON.parse(box.dataset.v||"[]");if(a.indexOf(n)<0)a.push(n);box.dataset.v=JSON.stringify(a);inp.value="";mtChips(box)}
 function openForm(title,fs,v,cb){$("fmT").textContent=title;
  $("fmB").innerHTML=fs.map(function(f){var val=esc(v[f.k]||""),c=f.full?' class="full"':"";
+  if(f.t==="multi"){var arr=f.k==="trs"?trainersOf(v):(v[f.k]||[]);return"<div"+c+' class="mt" data-k="'+f.k+'" data-multi="1" data-v="'+esc(JSON.stringify(arr))+'"><span class="mtl">'+f.l+'</span><span class="mtc"></span><span class="mtr"><input type="text" list="dlp" placeholder="Type a name, then press Enter or + Add"><button type="button" class="btn" data-ma="1">+ Add trainer</button></span></div>'}
   if(f.t==="area")return"<label"+c+">"+f.l+'<textarea data-k="'+f.k+'" rows="3">'+val+"</textarea></label>";
   if(f.t==="sel")return"<label"+c+">"+f.l+'<select data-k="'+f.k+'">'+f.o.map(function(o){return'<option value="'+o[0]+'"'+(o[0]===v[f.k]?" selected":"")+">"+o[1]+"</option>"}).join("")+"</select></label>";
   return"<label"+c+">"+f.l+'<input type="text" data-k="'+f.k+'" value="'+val+'"'+(f.dl?' list="dlp"':"")+"></label>"}).join("");
- fmCb=cb;$("fm").showModal();var i=$("fmB").querySelector("input,textarea");if(i)i.focus()}
-$("fmS").onclick=function(){var o={};$("fmB").querySelectorAll("[data-k]").forEach(function(el){o[el.dataset.k]=el.value.trim()});$("fm").close();if(fmCb)fmCb(o)};
+ $("fmB").querySelectorAll("[data-multi]").forEach(mtChips);fmCb=cb;$("fm").showModal();var i=$("fmB").querySelector("input,textarea");if(i)i.focus()}
+$("fmB").addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("button");if(!b)return;var box=b.closest("[data-multi]");if(!box)return;if(b.dataset.ma)mtAdd(box);else if(b.dataset.mx!==undefined){var a=JSON.parse(box.dataset.v||"[]");a.splice(+b.dataset.mx,1);box.dataset.v=JSON.stringify(a);mtChips(box)}});
+$("fmB").addEventListener("keydown",function(e){if(e.key!=="Enter")return;var box=e.target.closest&&e.target.closest("[data-multi]");if(box){e.preventDefault();mtAdd(box)}});
+$("fmS").onclick=function(){var o={};$("fmB").querySelectorAll("[data-multi]").forEach(mtAdd);$("fmB").querySelectorAll("[data-k]").forEach(function(el){o[el.dataset.k]=el.dataset.multi?JSON.parse(el.dataset.v||"[]"):el.value.trim()});$("fm").close();if(fmCb)fmCb(o)};
 $("fmC").onclick=function(){$("fm").close()};
-var FT=[{k:"n",l:"Name",dl:1},{k:"eid",l:"Employee ID"},{k:"eq",l:"Equipment to learn"},{k:"tr",l:"Trainer",dl:1},{k:"treq",l:"Trainer’s equipment"}],
+var FT=[{k:"n",l:"Name",dl:1},{k:"eid",l:"Employee ID"},{k:"eq",l:"Equipment to learn"},{k:"trs",l:"Trainers (add one or more)",t:"multi",full:1},{k:"treq",l:"Trainer’s equipment"}],
  FS=[{k:"w",l:"Weeks (e.g. Week 2–3)",full:1},{k:"t",l:"Stage title",full:1},{k:"d",l:"Description",t:"area",full:1}],
  FL=[{k:"ty",l:"Type",t:"sel",o:[["theory","Theory"],["practice","Practice"]]},{k:"dur",l:"Duration"},{k:"t",l:"Lesson title",full:1},{k:"d",l:"Description",t:"area",full:1},{k:"tr",l:"Trainer",dl:1},{k:"as",l:"Assessor (blank = no assessment)",dl:1}];
 function tdel(msg,fn){tsnap=JSON.stringify(T);fn();saveTr();renderTrain();toast2(msg,function(){T=JSON.parse(tsnap);saveTr();renderTrain()})}
@@ -1037,14 +1045,14 @@ function renderTrain(){
  $("tSt").innerHTML="<span><b>"+T.stages.length+"</b> stages</span><span><b>"+all.length+"</b> topics</span><span><b>"+T.trainees.length+"</b> trainees</span>";
  $("bSa").hidden=!CE;
  $("tCs").innerHTML=T.trainees.map(function(x,i){var p=prog(x),sel=i===tsel;
-  return'<div class="tc'+(sel?" sel":"")+'" data-tsel="'+i+'" tabindex="0" role="button" aria-label="Select '+esc(x.n)+'"><div class="tch"><span class="av">'+esc(initials(x.n))+'</span><div class="tci"><b>'+esc(x.n)+"</b><small>ID "+esc(x.eid||"–")+"</small><small>Trainer: "+esc(x.tr||"–")+(x.treq?" ("+esc(x.treq)+")":"")+"</small>"+(x.eq?'<span class="tag">'+esc(x.eq)+"</span>":"")+"</div>"+(sel?'<span class="bd">Current</span>':"")+'</div><div class="tpl"><span>Overall completion</span><span>'+p+'%</span></div><div class="tprog"><i style="width:'+p+'%"></i></div>'+(CE?'<span class="tbt"><button class="hb" data-te="'+i+'">Edit</button><button class="hb" data-td="'+i+'">Remove</button></span>':"")+"</div>"}).join("")+(CE?'<button class="tc tadd" data-ta="1">+ Trainee</button>':"");
+  return'<div class="tc'+(sel?" sel":"")+'" data-tsel="'+i+'" tabindex="0" role="button" aria-label="Select '+esc(x.n)+'"><div class="tch"><span class="av">'+esc(initials(x.n))+'</span><div class="tci"><b>'+esc(x.n)+"</b><small>ID "+esc(x.eid||"–")+"</small><small>"+(trainersOf(x).length>1?"Trainers: ":"Trainer: ")+esc(trainersOf(x).join(", ")||"–")+(x.treq?" ("+esc(x.treq)+")":"")+"</small>"+(x.eq?'<span class="tag">'+esc(x.eq)+"</span>":"")+"</div>"+(sel?'<span class="bd">Current</span>':"")+'</div><div class="tpl"><span>Overall completion</span><span>'+p+'%</span></div><div class="tprog"><i style="width:'+p+'%"></i></div>'+(CE?'<span class="tbt"><button class="hb" data-te="'+i+'">Edit</button><button class="hb" data-td="'+i+'">Remove</button></span>':"")+"</div>"}).join("")+(CE?'<button class="tc tadd" data-ta="1">+ Trainee</button>':"");
  var cur=curStage(tr);
  $("tl").innerHTML=T.stages.map(function(s,si){var d=stDone(tr,s),pass=stPassed(tr,s),open=topen[s.id]===undefined?si===cur:topen[s.id];
   var h='<div class="ts'+(si===cur?" cur":"")+(pass?" ok":"")+'"><span class="tn">'+(pass?"✓":si+1)+'</span><div class="tsh2"><span class="wk">'+esc(s.w)+"</span>"+(si===cur?'<span class="bd">Current stage</span>':"")+(pass?'<span class="bd ok">Passed</span>':"")+'<button class="chev" data-tg="'+s.id+'" aria-expanded="'+open+'" aria-label="Expand or collapse stage">'+(open?"▴":"▾")+"</button></div><h4>"+esc(s.t)+'</h4><p class="sd">'+esc(s.d)+'</p><small class="sc">'+s.ls.length+" lessons · Passed "+d+"/"+s.ls.length+"</small>";
   if(open){
    h+='<div class="sact">'+(CE?'<button class="btn" data-se="'+s.id+'">Edit stage</button><button class="btn" data-la="'+s.id+'">+ Lesson</button>':"")+(CAN&&has&&s.ls.length?'<button class="btn" data-sall="'+s.id+'">'+(pass?"Clear all":"Mark all passed")+"</button>":"")+(CE?'<button class="btn dng" data-sd="'+s.id+'">Delete stage</button>':"")+"</div>";
    h+=s.ls.map(function(l){var fl=(tr.files&&tr.files[l.id])||[],dn=!!tr.done[l.id],am=!!(tr.asm&&tr.asm[l.id]),W=CAN&&has;
-    return'<div class="lz"><input type="checkbox" class="ck" data-ck="'+l.id+'"'+(dn?" checked":"")+(W?"":" disabled")+' aria-label="Completed: '+esc(l.t)+'"><div class="lc"><b>'+esc(l.t)+"</b>"+(l.d?"<small>"+esc(l.d)+"</small>":"")+'<div class="lm"><span class="ty '+l.ty+'">'+(l.ty==="practice"?"Practice 实操":"Theory 理论")+"</span>"+(l.dur?"<span>"+esc(l.dur)+"</span>":"")+(l.tr?"<span>Trainer: "+esc(l.tr)+"</span>":"")+(CE?'<button class="hb" data-le="'+l.id+'">Edit</button><button class="hb" data-ld="'+l.id+'">Delete</button>':"")+'</div><div class="fl">'+fl.map(function(f,k){return'<span class="fi"><a href="'+esc(f.iid?FBLOB(f.iid):f.u)+'" target="_blank" rel="noopener">'+esc(f.n)+"</a> <small>"+fsz(f.sz||0)+"</small>"+(CAN?'<button class="x" data-rf="'+l.id+":"+k+'" aria-label="Remove file">✕</button>':"")+"</span>"}).join("")+(W?'<button class="hb" data-at="'+l.id+'">+ Attach file</button>':"")+"</div></div>"+(l.as?'<label class="asx'+(W&&dn?"":" dis")+'"><input type="checkbox" data-as="'+l.id+'"'+(am?" checked":"")+(W&&dn?"":" disabled")+'><span>Assessment passed 考核通过<small>Assessor: '+esc(l.as)+"</small></span></label>":"")+"</div>"}).join("")}
+    return'<div class="lz"><input type="checkbox" class="ck" data-ck="'+l.id+'"'+(dn?" checked":"")+(W?"":" disabled")+' title="Ticks automatically when a file is attached (submitted)" aria-label="Submitted: '+esc(l.t)+'"><div class="lc"><b>'+esc(l.t)+"</b>"+(l.d?"<small>"+esc(l.d)+"</small>":"")+'<div class="lm"><span class="ty '+l.ty+'">'+(l.ty==="practice"?"Practice 实操":"Theory 理论")+"</span>"+(l.dur?"<span>"+esc(l.dur)+"</span>":"")+(l.tr?"<span>Trainer: "+esc(l.tr)+"</span>":"")+(CE?'<button class="hb" data-le="'+l.id+'">Edit</button><button class="hb" data-ld="'+l.id+'">Delete</button>':"")+'</div><div class="fl">'+fl.map(function(f,k){return'<span class="fi"><a href="'+esc(f.iid?FBLOB(f.iid):f.u)+'" target="_blank" rel="noopener">'+esc(f.n)+"</a> <small>"+fsz(f.sz||0)+"</small>"+(CAN?'<button class="x" data-rf="'+l.id+":"+k+'" aria-label="Remove file">✕</button>':"")+"</span>"}).join("")+(W?'<button class="hb" data-at="'+l.id+'">+ Attach file</button>':"")+"</div></div>"+(l.as?'<label class="asx'+(W&&dn?"":" dis")+'"><input type="checkbox" data-as="'+l.id+'"'+(am?" checked":"")+(W&&dn?"":" disabled")+'><span>Assessment passed 考核通过<small>Assessor: '+esc(l.as)+"</small></span></label>":"")+"</div>"}).join("")}
   return h+"</div>"}).join("")||'<p class="tsp">No stages yet.</p>'}
 
 function pickTrainee(i){tsel=i;renderTrain()}
@@ -1053,9 +1061,9 @@ $("vT").addEventListener("click",function(e){var t=e.target,b,i;
  if(b=t.closest("[data-pi]")){openForm("Plan info",[{k:"title",l:"Title",full:1},{k:"chip",l:"Badge text",full:1},{k:"sub",l:"Subtitle",t:"area",full:1},{k:"period",l:"Training period"},{k:"dept",l:"Department",full:1}],T,function(o){T.title=o.title||T.title;T.chip=o.chip;T.sub=o.sub;T.period=o.period;T.dept=o.dept;saveTr();renderTrain()});return}
  if(b=t.closest("[data-bn]")){$("fBan").click();return}
  if(b=t.closest("[data-bx]")){T.bi="";T.banner="";saveTr();renderTrain();return}
- if(b=t.closest("[data-te]")){i=+b.dataset.te;openForm("Edit trainee",FT,T.trainees[i],function(o){if(!o.n)return;Object.assign(T.trainees[i],o);saveTr();renderTrain()});return}
+ if(b=t.closest("[data-te]")){i=+b.dataset.te;openForm("Edit trainee",FT,T.trainees[i],function(o){if(!o.n)return;o.tr=(o.trs||[]).join(", ");Object.assign(T.trainees[i],o);saveTr();renderTrain()});return}
  if(b=t.closest("[data-td]")){i=+b.dataset.td;var nm=T.trainees[i].n;tdel("Removed "+nm,function(){T.trainees.splice(i,1);if(tsel>=T.trainees.length)tsel=Math.max(0,T.trainees.length-1)});return}
- if(b=t.closest("[data-ta]")){openForm("Add trainee",FT,{},function(o){if(!o.n)return;T.trainees.push({id:uid(),n:o.n,eid:o.eid,eq:o.eq,tr:o.tr,treq:o.treq,done:{},files:{}});tsel=T.trainees.length-1;saveTr();renderTrain()});return}
+ if(b=t.closest("[data-ta]")){openForm("Add trainee",FT,{},function(o){if(!o.n)return;T.trainees.push({id:uid(),n:o.n,eid:o.eid,eq:o.eq,trs:o.trs||[],tr:(o.trs||[]).join(", "),treq:o.treq,done:{},files:{}});tsel=T.trainees.length-1;saveTr();renderTrain()});return}
  if(b=t.closest("[data-sa]")){openForm("Add stage",FS,{w:"Week "},function(o){if(!o.t)return;T.stages.push({id:uid(),w:o.w,t:o.t,d:o.d,ls:[]});topen[T.stages[T.stages.length-1].id]=true;saveTr();renderTrain()});return}
  if(b=t.closest("[data-se]")){var s=findS(b.dataset.se);openForm("Edit stage",FS,s,function(o){if(!o.t)return;s.w=o.w;s.t=o.t;s.d=o.d;saveTr();renderTrain()});return}
  if(b=t.closest("[data-sd]")){var sid=b.dataset.sd,sn=findS(sid).t;tdel("Deleted stage",function(){T.stages=T.stages.filter(function(x){return x.id!==sid})});return}
@@ -1065,7 +1073,7 @@ $("vT").addEventListener("click",function(e){var t=e.target,b,i;
  if(b=t.closest("[data-tg]")){var s3=findS(b.dataset.tg),cur=curStage(T.trainees[tsel]||{done:{}}),idx=T.stages.indexOf(s3),o=topen[s3.id]===undefined?idx===cur:topen[s3.id];topen[s3.id]=!o;renderTrain();return}
  if(b=t.closest("[data-sall]")){var s4=findS(b.dataset.sall),tr=T.trainees[tsel];if(!tr)return;var all=stPassed(tr,s4);tr.asm=tr.asm||{};s4.ls.forEach(function(l){if(all){delete tr.done[l.id];delete tr.asm[l.id]}else{tr.done[l.id]=1;if(l.as)tr.asm[l.id]=1}});saveTr();renderTrain();return}
  if(b=t.closest("[data-at]")){atL=b.dataset.at;$("fAtt").click();return}
- if(b=t.closest("[data-rf]")){var p=b.dataset.rf.split(":"),tr2=T.trainees[tsel];if(tr2&&tr2.files[p[0]]){tr2.files[p[0]].splice(+p[1],1);saveTr();renderTrain()}return}
+ if(b=t.closest("[data-rf]")){var p=b.dataset.rf.split(":"),tr2=T.trainees[tsel];if(tr2&&tr2.files[p[0]]){tr2.files[p[0]].splice(+p[1],1);if(!tr2.files[p[0]].length){delete tr2.done[p[0]];if(tr2.asm)delete tr2.asm[p[0]]}saveTr();renderTrain()}return}
  if(b=t.closest("[data-tsel]"))pickTrainee(+b.dataset.tsel)});
 $("vT").addEventListener("keydown",function(e){var b=e.target.closest&&e.target.closest("[data-tsel]");if(b&&e.target===b&&(e.key==="Enter"||e.key===" ")){e.preventDefault();pickTrainee(+b.dataset.tsel)}});
 $("vT").addEventListener("change",function(e){var c=e.target;if(!c.dataset)return;var tr=T.trainees[tsel];if(!tr)return;tr.asm=tr.asm||{};
@@ -1081,8 +1089,8 @@ $("fAtt").onchange=async function(){var fs=[].slice.call(this.files),lid=atL,tr=
    if(AS){var ext=(f.name.split(".").pop()||"").toLowerCase(),tm={csv:"text/csv",md:"text/markdown",json:"application/json",txt:"text/plain"},r=await AS.upload(f,tm[ext]?{type:tm[ext]}:undefined);ent={n:f.name,iid:r.id,sz:r.sizeBytes}}
    else if(f.size<=200000){ent={n:f.name,u:await readDU(f),sz:f.size}}
    else{toast("File storage is not available here, so “"+f.name+"” was not attached.");continue}
-   (tr.files[lid]=tr.files[lid]||[]).push(ent);ok++
-  }catch(er){if(f.size<=200000){try{(tr.files[lid]=tr.files[lid]||[]).push({n:f.name,u:await readDU(f),sz:f.size});ok++;toast("File kept inside the page data because file storage refused it ("+((er&&er.code)||"error")+").");continue}catch(e2){}}var c=er&&er.code;toast(c==="unsupported_type"?"“"+f.name+"” is not a supported type. Use an image, PDF, MP4/WebM video, CSV, Markdown, JSON or text file.":c==="too_large"?"“"+f.name+"” is too large (limit 20 MB).":c==="quota_or_state"?"File storage is full.":c==="not_granted"?"You do not have permission to upload files.":"Could not upload “"+f.name+"”.")}
+   (tr.files[lid]=tr.files[lid]||[]).push(ent);tr.done[lid]=1;ok++
+  }catch(er){if(f.size<=200000){try{(tr.files[lid]=tr.files[lid]||[]).push({n:f.name,u:await readDU(f),sz:f.size});tr.done[lid]=1;ok++;toast("File kept inside the page data because file storage refused it ("+((er&&er.code)||"error")+").");continue}catch(e2){}}var c=er&&er.code;toast(c==="unsupported_type"?"“"+f.name+"” is not a supported type. Use an image, PDF, MP4/WebM video, CSV, Markdown, JSON or text file.":c==="too_large"?"“"+f.name+"” is too large (limit 20 MB).":c==="quota_or_state"?"File storage is full.":c==="not_granted"?"You do not have permission to upload files.":"Could not upload “"+f.name+"”.")}
  }
  if(ok){saveTr();renderTrain();toast(ok+" file"+(ok>1?"s":"")+" attached")}else setStatus(DB?"Saved to cloud":"Saved in this browser only","")};
 $("fBan").onchange=function(){var f=this.files[0];this.value="";if(!f)return;var fr=new FileReader();
@@ -1240,8 +1248,6 @@ initCloud();
     if(!it||!it.machines||!it.machines.length)return '<span class="na">'+t('nodata')+'</span>';
     var ms=it.machines,facs={};ms.forEach(function(m){facs[m.factory]=1});
     var many=Object.keys(facs).length>1,h='';
-    if(!ms.some(function(m){return m.current}))h+='<span class="na">'+t('unk')+'</span>';
-    else{var nr=ms.filter(function(m){return rstate(m).run}).length;h+='<div class="run'+(nr?'':' allstop')+'"><div class="mh"><i></i>'+(nr?t('run')+' ('+nr+'/'+ms.length+')':t('allstop'))+'</div>'+runTable(ms)+'</div>'}
     var ch=[];
     ms.forEach(function(m){m.periods.forEach(function(p,i){if(i>0)ch.push({at:p.from,m:m,from:m.periods[i-1].product,to:p.product})})});
     ch.sort(function(a,b){return a.at<b.at?1:a.at>b.at?-1:0});
