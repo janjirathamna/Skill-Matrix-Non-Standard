@@ -234,7 +234,7 @@ thead th.eq img{display:block;width:76px;height:56px;max-width:none;max-height:n
 .sact{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px}
 .dng{color:var(--c3)}
 .lz{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:6px 10px;align-items:start;padding:10px 0;border-top:1px solid var(--line)}
-.ck{width:18px;height:18px;margin-top:2px;accent-color:var(--tl)}
+.ck{width:18px;height:18px;margin-top:2px;accent-color:#0b9a4a}.ck:disabled{cursor:not-allowed;opacity:.55}
 .ty{border-radius:6px;padding:1px 9px;font-size:.78rem;font-weight:700;background:var(--tlbg);color:var(--tl)}
 .ty.practice{background:rgba(242,106,15,.14);color:var(--c2)}
 .lt{display:grid;gap:2px;min-width:0}
@@ -1052,7 +1052,7 @@ function renderTrain(){
   if(open){
    h+='<div class="sact">'+(CE?'<button class="btn" data-se="'+s.id+'">Edit stage</button><button class="btn" data-la="'+s.id+'">+ Lesson</button>':"")+(CAN&&has&&s.ls.length?'<button class="btn" data-sall="'+s.id+'">'+(pass?"Clear all":"Mark all passed")+"</button>":"")+(CE?'<button class="btn dng" data-sd="'+s.id+'">Delete stage</button>':"")+"</div>";
    h+=s.ls.map(function(l){var fl=(tr.files&&tr.files[l.id])||[],dn=!!tr.done[l.id],am=!!(tr.asm&&tr.asm[l.id]),W=CAN&&has;
-    return'<div class="lz"><input type="checkbox" class="ck" data-ck="'+l.id+'"'+(dn?" checked":"")+(W?"":" disabled")+' title="Ticks automatically when a file is attached (submitted)" aria-label="Submitted: '+esc(l.t)+'"><div class="lc"><b>'+esc(l.t)+"</b>"+(l.d?"<small>"+esc(l.d)+"</small>":"")+'<div class="lm"><span class="ty '+l.ty+'">'+(l.ty==="practice"?"Practice 实操":"Theory 理论")+"</span>"+(l.dur?"<span>"+esc(l.dur)+"</span>":"")+(l.tr?"<span>Trainer: "+esc(l.tr)+"</span>":"")+(CE?'<button class="hb" data-le="'+l.id+'">Edit</button><button class="hb" data-ld="'+l.id+'">Delete</button>':"")+'</div><div class="fl">'+fl.map(function(f,k){return'<span class="fi"><a href="'+esc(f.iid?FBLOB(f.iid):f.u)+'" target="_blank" rel="noopener">'+esc(f.n)+"</a> <small>"+fsz(f.sz||0)+"</small>"+(CAN?'<button class="x" data-rf="'+l.id+":"+k+'" aria-label="Remove file">✕</button>':"")+"</span>"}).join("")+(W?'<button class="hb" data-at="'+l.id+'">+ Attach file</button>':"")+"</div></div>"+(l.as?'<label class="asx'+(W&&dn?"":" dis")+'"><input type="checkbox" data-as="'+l.id+'"'+(am?" checked":"")+(W&&dn?"":" disabled")+'><span>Assessment passed 考核通过<small>Assessor: '+esc(l.as)+"</small></span></label>":"")+"</div>"}).join("")}
+    return'<div class="lz"><input type="checkbox" class="ck" data-ck="'+l.id+'"'+(dn?" checked":"")+(W&&(fl.length||dn)?"":" disabled")+' title="'+(fl.length||dn?"Submitted":"Attach a file first - it ticks automatically once a file is attached")+'" aria-label="Submitted: '+esc(l.t)+'"><div class="lc"><b>'+esc(l.t)+"</b>"+(l.d?"<small>"+esc(l.d)+"</small>":"")+'<div class="lm"><span class="ty '+l.ty+'">'+(l.ty==="practice"?"Practice 实操":"Theory 理论")+"</span>"+(l.dur?"<span>"+esc(l.dur)+"</span>":"")+(l.tr?"<span>Trainer: "+esc(l.tr)+"</span>":"")+(CE?'<button class="hb" data-le="'+l.id+'">Edit</button><button class="hb" data-ld="'+l.id+'">Delete</button>':"")+'</div><div class="fl">'+fl.map(function(f,k){return'<span class="fi"><a href="'+esc(f.iid?FBLOB(f.iid):f.u)+'" target="_blank" rel="noopener">'+esc(f.n)+"</a> <small>"+fsz(f.sz||0)+"</small>"+(CAN?'<button class="x" data-rf="'+l.id+":"+k+'" aria-label="Remove file">✕</button>':"")+"</span>"}).join("")+(W?'<button class="hb" data-at="'+l.id+'">+ Attach file</button>':"")+"</div></div>"+(l.as?'<label class="asx'+(W&&dn?"":" dis")+'"><input type="checkbox" data-as="'+l.id+'"'+(am?" checked":"")+(W&&dn?"":" disabled")+'><span>Assessment passed 考核通过<small>Assessor: '+esc(l.as)+"</small></span></label>":"")+"</div>"}).join("")}
   return h+"</div>"}).join("")||'<p class="tsp">No stages yet.</p>'}
 
 function pickTrainee(i){tsel=i;renderTrain()}
@@ -1077,7 +1077,7 @@ $("vT").addEventListener("click",function(e){var t=e.target,b,i;
  if(b=t.closest("[data-tsel]"))pickTrainee(+b.dataset.tsel)});
 $("vT").addEventListener("keydown",function(e){var b=e.target.closest&&e.target.closest("[data-tsel]");if(b&&e.target===b&&(e.key==="Enter"||e.key===" ")){e.preventDefault();pickTrainee(+b.dataset.tsel)}});
 $("vT").addEventListener("change",function(e){var c=e.target;if(!c.dataset)return;var tr=T.trainees[tsel];if(!tr)return;tr.asm=tr.asm||{};
- if(c.dataset.ck){if(c.checked)tr.done[c.dataset.ck]=1;else{delete tr.done[c.dataset.ck];delete tr.asm[c.dataset.ck]}}
+ if(c.dataset.ck){if(c.checked&&!(tr.files[c.dataset.ck]||[]).length){renderTrain();return}if(c.checked)tr.done[c.dataset.ck]=1;else{delete tr.done[c.dataset.ck];delete tr.asm[c.dataset.ck]}}
  else if(c.dataset.as){if(c.checked)tr.asm[c.dataset.as]=1;else delete tr.asm[c.dataset.as]}
  else return;
  saveTr();renderTrain()});
